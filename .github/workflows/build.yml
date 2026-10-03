@@ -1,0 +1,94 @@
+name: Build Android dan Web
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # APK Android, diunggah ke GitHub Releases.
+  # Jalan saat push tag (misalnya v0.1.0) atau dijalankan manual.
+  android:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Membuat folder android/ dan web/ kalau belum ada di repo.
+      # File yang sudah ada (lib/, pubspec.yaml) tidak ditimpa.
+      - name: Siapkan folder platform
+        run: |
+          if [ ! -d android ] || [ ! -d web ]; then
+            flutter create --platforms=android,web --project-name portal_karyawan --org com.example .
+          fi
+
+      - run: flutter pub get
+
+      - run: flutter build apk --release
+
+      - name: Ganti nama APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk portal-karyawan.apk
+
+      - name: Unggah ke GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('build-{0}', github.run_number) }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || format('Build {0}', github.run_number) }}
+          files: portal-karyawan.apk
+          generate_release_notes: true
+
+  # Web (PWA), dipasang di GitHub Pages yang sudah HTTPS.
+  web:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Siapkan folder platform
+        run: |
+          if [ ! -d android ] || [ ! -d web ]; then
+            flutter create --platforms=android,web --project-name portal_karyawan --org com.example .
+          fi
+
+      - run: flutter pub get
+
+      # base-href harus sama dengan nama repo karena alamat GitHub Pages
+      # berbentuk https://<user>.github.io/<nama-repo>/
+      - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
