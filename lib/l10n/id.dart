@@ -163,14 +163,17 @@ const Map<String, String> kTextId = {
 
   // Tes notifikasi
   'notif_test_desc':
-      'Kirim notifikasi percobaan untuk memastikan notifikasi di HP ini berjalan.',
+      'Kirim notifikasi percobaan untuk memastikan notifikasi di perangkat ini berjalan.',
   'notif_test_button': 'Tes notifikasi',
   'notif_test_title': 'Tes notifikasi',
   'notif_test_body': 'Notifikasi di perangkat ini berjalan dengan baik.',
   'notif_sent': 'Notifikasi tes dikirim. Cek panel notifikasi.',
   'notif_denied':
-      'Izin notifikasi ditolak. Aktifkan notifikasi aplikasi ini di pengaturan HP.',
-  'notif_unsupported': 'Tes notifikasi hanya tersedia di aplikasi Android.',
+      'Izin notifikasi ditolak. Aktifkan notifikasi aplikasi ini di pengaturan perangkat atau browser.',
+  'notif_unsupported':
+      'Notifikasi tidak didukung di perangkat atau browser ini.',
+  'notif_insecure':
+      'Notifikasi hanya bisa dipakai kalau aplikasi dibuka lewat HTTPS.',
   'notif_failed': 'Notifikasi gagal dikirim.',
 
   // Update aplikasi

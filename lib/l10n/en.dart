@@ -163,15 +163,17 @@ const Map<String, String> kTextEn = {
 
   // Notification test
   'notif_test_desc':
-      'Send a test notification to check that notifications work on this phone.',
+      'Send a test notification to check that notifications work on this device.',
   'notif_test_button': 'Test notification',
   'notif_test_title': 'Test notification',
   'notif_test_body': 'Notifications are working on this device.',
   'notif_sent': 'Test notification sent. Check your notification panel.',
   'notif_denied':
-      "Notification permission was denied. Turn on this app's notifications in your phone settings.",
+      "Notification permission was denied. Turn on this app's notifications in your device or browser settings.",
   'notif_unsupported':
-      'The notification test is only available in the Android app.',
+      'Notifications are not supported on this device or browser.',
+  'notif_insecure':
+      'Notifications only work when the app is opened over HTTPS.',
   'notif_failed': 'The notification could not be sent.',
 
   // App update

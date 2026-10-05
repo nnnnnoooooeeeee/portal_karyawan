@@ -2,15 +2,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'l10n.dart';
+import 'notify_stub.dart' if (dart.library.js_interop) 'notify_web.dart';
 
 final FlutterLocalNotificationsPlugin _plugin =
     FlutterLocalNotificationsPlugin();
 bool _ready = false;
 
-/// Menampilkan notifikasi percobaan di HP.
+/// Menampilkan notifikasi percobaan di perangkat ini.
 /// Mengembalikan kunci terjemahan untuk pesan hasilnya.
 Future<String> showTestNotification() async {
-  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+  if (kIsWeb) {
+    try {
+      return await showWebNotification(
+          tr('notif_test_title'), tr('notif_test_body'));
+    } catch (_) {
+      return 'notif_failed';
+    }
+  }
+  if (defaultTargetPlatform != TargetPlatform.android) {
     return 'notif_unsupported';
   }
   try {
