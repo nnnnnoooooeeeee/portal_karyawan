@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -124,20 +125,20 @@ class _EventsPageState extends State<EventsPage> {
           Row(
             children: [
               IconButton(
-                tooltip: 'Bulan sebelumnya',
+                tooltip: tr('prev_month'),
                 onPressed: () => _shift(-1),
                 icon: const Icon(Icons.chevron_left_rounded),
               ),
               Expanded(
                 child: Text(
-                  '${kBulan[_month.month - 1]} ${_month.year}',
+                  '${monthNames[_month.month - 1]} ${_month.year}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w800),
                 ),
               ),
               IconButton(
-                tooltip: 'Bulan berikutnya',
+                tooltip: tr('next_month'),
                 onPressed: () => _shift(1),
                 icon: const Icon(Icons.chevron_right_rounded),
               ),
@@ -146,7 +147,7 @@ class _EventsPageState extends State<EventsPage> {
           const SizedBox(height: 8),
           Row(
             children: [
-              for (final h in kHari)
+              for (final h in dayNames)
                 Expanded(
                   child: Text(
                     h,
@@ -175,7 +176,7 @@ class _EventsPageState extends State<EventsPage> {
 
   Widget _eventCard(BuildContext context, EventItem e) {
     final c = AppColors.of(context);
-    final going = e.going.contains(appState.user!.email);
+    final going = e.going.contains(appState.uid);
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -189,8 +190,8 @@ class _EventsPageState extends State<EventsPage> {
               Expanded(
                 child: Text(
                   e.going.isEmpty
-                      ? 'Belum ada yang mendaftar'
-                      : '${e.going.length} orang ikut',
+                      ? tr('no_one_registered')
+                      : tr('people_going', {'n': e.going.length}),
                   style: TextStyle(color: c.muted, fontSize: 14),
                 ),
               ),
@@ -198,12 +199,12 @@ class _EventsPageState extends State<EventsPage> {
                 OutlinedButton.icon(
                   onPressed: () => appState.toggleGoing(e),
                   icon: const Icon(Icons.check_rounded),
-                  label: const Text('Terdaftar'),
+                  label: Text(tr('registered')),
                 )
               else
                 FilledButton(
                   onPressed: () => appState.toggleGoing(e),
-                  child: const Text('Ikut'),
+                  child: Text(tr('join')),
                 ),
             ],
           ),
@@ -226,8 +227,8 @@ class _EventsPageState extends State<EventsPage> {
     list.sort((a, b) => a.start.compareTo(b.start));
 
     final listTitle = selected != null
-        ? 'Event tanggal ${fmtDate(selected)}'
-        : 'Semua event ${kBulan[_month.month - 1]}';
+        ? tr('events_on', {'date': fmtDate(selected)})
+        : tr('events_in', {'month': monthNames[_month.month - 1]});
 
     final listColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -238,8 +239,8 @@ class _EventsPageState extends State<EventsPage> {
         if (list.isEmpty)
           Text(
             selected != null
-                ? 'Tidak ada event di tanggal ini.'
-                : 'Tidak ada event di bulan ini.',
+                ? tr('no_events_date')
+                : tr('no_events_month'),
             style: TextStyle(color: c.muted),
           ),
         ...spaced([for (final e in list) _eventCard(context, e)], 12),
@@ -252,8 +253,8 @@ class _EventsPageState extends State<EventsPage> {
         return PageBody(
           maxWidth: wide ? 1040 : 560,
           children: [
-            const PageHeader('Event',
-                subtitle: 'Ketuk tanggal untuk melihat event hari itu'),
+            PageHeader(tr('nav_events'),
+                subtitle: tr('events_subtitle')),
             if (wide)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

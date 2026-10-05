@@ -1,0 +1,193 @@
+const Map<String, String> kTextId = {
+  // Umum
+  'app_name': 'Portal Karyawan',
+  'cancel': 'Batal',
+  'close': 'Tutup',
+  'later': 'Nanti',
+  'back': 'Kembali',
+  'all': 'Semua',
+  'view': 'Lihat',
+  'you': 'Kamu',
+  'optional': '{label} (opsional)',
+  'language': 'Bahasa',
+  'theme_toggle': 'Ganti mode terang atau gelap',
+
+  // Tanggal dan waktu (dipisah koma, urutan jangan diubah)
+  'months':
+      'Januari,Februari,Maret,April,Mei,Juni,Juli,Agustus,September,Oktober,November,Desember',
+  'months_short': 'JAN,FEB,MAR,APR,MEI,JUN,JUL,AGU,SEP,OKT,NOV,DES',
+  'days': 'Sen,Sel,Rab,Kam,Jum,Sab,Min',
+  'just_now': 'baru saja',
+  'minutes_ago': '{n} menit lalu',
+  'hours_ago': '{n} jam lalu',
+  'yesterday': 'kemarin',
+  'days_ago': '{n} hari lalu',
+
+  // Data karyawan
+  'full_name': 'Nama lengkap',
+  'nik': 'NIK',
+  'finger_no': 'No. finger',
+  'department': 'Departemen',
+  'position': 'Jabatan',
+  'password': 'Kata sandi',
+
+  // Masuk dan daftar
+  'auth_hello_1': 'Halo lagi.',
+  'auth_hello_2': 'Masuk untuk lanjut.',
+  'auth_join_1': 'Yuk, gabung.',
+  'auth_join_2': 'Buat akunmu dulu.',
+  'show_password': 'Tampilkan kata sandi',
+  'hide_password': 'Sembunyikan kata sandi',
+  'sign_in': 'Masuk',
+  'sign_up': 'Daftar',
+  'have_account': 'Sudah punya akun? Masuk',
+  'no_account': 'Belum punya akun? Daftar',
+  'demo_hint':
+      'Coba akun demo: no. finger {finger}, kata sandi {password}. Ketuk untuk mengisi otomatis.',
+  'err_wrong_password': 'Kata sandi salah.',
+  'err_finger_unknown': 'No. finger belum terdaftar.',
+  'err_finger_required': 'No. finger wajib diisi.',
+  'err_finger_taken': 'No. finger sudah terdaftar.',
+  'err_name_required': 'Nama wajib diisi.',
+  'err_password_short': 'Kata sandi minimal 6 karakter.',
+
+  // Menu
+  'nav_home': 'Beranda',
+  'nav_news': 'Berita',
+  'nav_events': 'Event',
+  'nav_survey': 'Survey',
+  'nav_leave': 'Cuti',
+  'nav_payslip': 'Slip Gaji',
+  'nav_profile': 'Profil',
+  'nav_services': 'Layanan',
+  'search_news': 'Cari berita',
+  'search_hint': 'Cari berita, lalu tekan Enter',
+  'notifications': 'Notifikasi',
+  'no_notifications': 'Belum ada notifikasi.',
+
+  // Isi daftar notifikasi di dalam aplikasi
+  'note_payslip_ready': 'Slip gaji bulan lalu sudah tersedia.',
+  'note_new_survey': 'Ada survey baru yang menunggu jawabanmu.',
+  'note_event_join': 'Kamu terdaftar di "{title}".',
+  'note_event_cancel': 'Kamu batal ikut "{title}".',
+  'note_survey_thanks': 'Terima kasih sudah mengisi "{title}".',
+
+  // Beranda
+  'greet_morning': 'Pagi',
+  'greet_midday': 'Siang',
+  'greet_afternoon': 'Sore',
+  'greet_night': 'Malam',
+  'home_question': 'Ada kabar apa hari ini?',
+  'latest_payslip': 'Slip gaji terbaru',
+  'next_events': 'Event seru berikutnya',
+  'no_events_scheduled': 'Belum ada event terjadwal.',
+  'voice_matters': 'Suaramu penting',
+  'all_surveys_done': 'Semua survey sudah kamu isi. Terima kasih!',
+  'only_minutes': 'Cuma {n} menit',
+  'fill_survey': 'Isi survey',
+  'see_all_news': 'Lihat semua berita',
+  'dont_miss': 'JANGAN SAMPAI TERLEWAT',
+
+  // Berita
+  'news_subtitle': 'Kabar terbaru dari perusahaan',
+  'cat_Semua': 'Semua',
+  'cat_Berita': 'Berita',
+  'cat_Pengumuman': 'Pengumuman',
+  'cat_Umum': 'Umum',
+  'no_news_match': 'Tidak ada berita yang cocok.',
+  'like': 'Suka',
+  'comments': 'Komentar',
+  'first_comment': 'Jadi yang pertama berkomentar.',
+  'write_comment': 'Tulis komentar',
+  'send_comment': 'Kirim komentar',
+
+  // Event
+  'events_subtitle': 'Ketuk tanggal untuk melihat event hari itu',
+  'prev_month': 'Bulan sebelumnya',
+  'next_month': 'Bulan berikutnya',
+  'no_one_registered': 'Belum ada yang mendaftar',
+  'people_going': '{n} orang ikut',
+  'registered': 'Terdaftar',
+  'join': 'Ikut',
+  'events_on': 'Event tanggal {date}',
+  'events_in': 'Semua event {month}',
+  'no_events_date': 'Tidak ada event di tanggal ini.',
+  'no_events_month': 'Tidak ada event di bulan ini.',
+
+  // Layanan
+  'services_subtitle': 'Semua urusanmu di satu tempat',
+  'leave_left': 'Sisa {n} hari',
+  'payslip_sub': 'Lihat rincian gaji bulanan',
+  'surveys_waiting': '{n} survey menunggu',
+  'all_filled': 'Semua sudah diisi',
+
+  // Cuti
+  'leave_remaining': 'Sisa cuti tahunan',
+  'leave_of': 'dari {n} hari',
+  'leave_quota': 'Jatah cuti tahunan',
+  'leave_used': 'Sudah terpakai',
+  'leave_rest': 'Sisa cuti',
+  'n_days': '{n} hari',
+  'leave_info':
+      'Halaman ini hanya menampilkan sisa cuti. Pengajuan cuti tidak dilakukan lewat aplikasi.',
+
+  // Slip gaji
+  'payslip_subtitle': 'Angka di bawah hanya data contoh',
+  'show_amounts': 'Tampilkan nominal',
+  'received': 'Diterima: {v}',
+  'earnings': 'PENDAPATAN',
+  'deductions': 'POTONGAN',
+  'total_earnings': 'Total pendapatan',
+  'total_deductions': 'Total potongan',
+  'net_pay': 'Gaji diterima',
+
+  // Survey
+  'survey_subtitle': 'Suaramu membantu perusahaan jadi lebih baik',
+  'survey_meta': '{n} pertanyaan, sekitar {m} menit',
+  'survey_done': 'Sudah diisi',
+  'question_missing': 'Pertanyaan {n} belum dijawab.',
+  'answers_saved': 'Jawabanmu tersimpan. Terima kasih!',
+  'rating_of': '{n} dari 5',
+  'your_answer': 'Jawabanmu (opsional)',
+  'send_answers': 'Kirim jawaban',
+
+  // Profil
+  'not_set': 'Belum diisi',
+  'appearance': 'Tampilan',
+  'theme_system': 'Ikuti perangkat',
+  'theme_light': 'Terang',
+  'theme_dark': 'Gelap',
+  'logout': 'Keluar',
+  'logout_title': 'Keluar dari akun?',
+  'logout_body': 'Kamu perlu masuk lagi untuk memakai aplikasi.',
+
+  // Tes notifikasi
+  'notif_test_desc':
+      'Kirim notifikasi percobaan untuk memastikan notifikasi di HP ini berjalan.',
+  'notif_test_button': 'Tes notifikasi',
+  'notif_test_title': 'Tes notifikasi',
+  'notif_test_body': 'Notifikasi di perangkat ini berjalan dengan baik.',
+  'notif_sent': 'Notifikasi tes dikirim. Cek panel notifikasi.',
+  'notif_denied':
+      'Izin notifikasi ditolak. Aktifkan notifikasi aplikasi ini di pengaturan HP.',
+  'notif_unsupported': 'Tes notifikasi hanya tersedia di aplikasi Android.',
+  'notif_failed': 'Notifikasi gagal dikirim.',
+
+  // Update aplikasi
+  'about_app': 'Aplikasi',
+  'app_version': 'Versi {v}',
+  'check_update': 'Cek update',
+  'update_title': 'Update tersedia',
+  'update_body':
+      'Versi {new} sudah tersedia. Versi di HP ini {current}. Update sekarang?',
+  'update_now': 'Update',
+  'update_downloading': 'Mengunduh update… {p}%',
+  'update_installing':
+      'Unduhan selesai. Ikuti layar pemasangan untuk menyelesaikan update.',
+  'update_failed': 'Update gagal diunduh. Coba lagi nanti.',
+  'update_permission':
+      'Izinkan aplikasi ini memasang update di pengaturan HP, lalu coba lagi.',
+  'up_to_date': 'Aplikasi sudah versi terbaru.',
+  'update_check_failed': 'Gagal memeriksa update. Cek koneksi internet.',
+  'update_unsupported': 'Update dalam aplikasi hanya tersedia di Android.',
+};

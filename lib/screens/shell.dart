@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -10,27 +11,29 @@ import 'profile.dart';
 import 'services.dart';
 
 class NavItem {
-  final String id, label;
+  final String id, labelKey;
   final IconData icon;
-  const NavItem(this.id, this.label, this.icon);
+  const NavItem(this.id, this.labelKey, this.icon);
+
+  String get label => tr(labelKey);
 }
 
 const List<NavItem> kWideItems = [
-  NavItem('home', 'Beranda', Icons.home_rounded),
-  NavItem('news', 'Berita', Icons.article_rounded),
-  NavItem('events', 'Event', Icons.event_rounded),
-  NavItem('survey', 'Survey', Icons.fact_check_rounded),
-  NavItem('leave', 'Cuti', Icons.beach_access_rounded),
-  NavItem('payslip', 'Slip Gaji', Icons.account_balance_wallet_rounded),
-  NavItem('profile', 'Profil', Icons.person_rounded),
+  NavItem('home', 'nav_home', Icons.home_rounded),
+  NavItem('news', 'nav_news', Icons.article_rounded),
+  NavItem('events', 'nav_events', Icons.event_rounded),
+  NavItem('survey', 'nav_survey', Icons.fact_check_rounded),
+  NavItem('leave', 'nav_leave', Icons.beach_access_rounded),
+  NavItem('payslip', 'nav_payslip', Icons.account_balance_wallet_rounded),
+  NavItem('profile', 'nav_profile', Icons.person_rounded),
 ];
 
 const List<NavItem> kPhoneItems = [
-  NavItem('home', 'Beranda', Icons.home_rounded),
-  NavItem('news', 'Berita', Icons.article_rounded),
-  NavItem('events', 'Event', Icons.event_rounded),
-  NavItem('services', 'Layanan', Icons.grid_view_rounded),
-  NavItem('profile', 'Profil', Icons.person_rounded),
+  NavItem('home', 'nav_home', Icons.home_rounded),
+  NavItem('news', 'nav_news', Icons.article_rounded),
+  NavItem('events', 'nav_events', Icons.event_rounded),
+  NavItem('services', 'nav_services', Icons.grid_view_rounded),
+  NavItem('profile', 'nav_profile', Icons.person_rounded),
 ];
 
 const List<String> kServicePages = ['services', 'leave', 'payslip', 'survey'];
@@ -154,17 +157,18 @@ class TopBar extends StatelessWidget {
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             children: [
-              const Text(
-                'Notifikasi',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              Text(
+                tr('notifications'),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
-              if (items.isEmpty) const Text('Belum ada notifikasi.'),
+              if (items.isEmpty) Text(tr('no_notifications')),
               for (final n in items)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.notifications_rounded, color: c.primary),
-                  title: Text(n),
+                  title: Text(n.text),
                 ),
             ],
           ),
@@ -207,17 +211,18 @@ class TopBar extends StatelessWidget {
               const Logo(size: 36),
               const SizedBox(width: 10),
             ],
-            const Expanded(
+            Expanded(
               child: Text(
-                'Portal Karyawan',
+                tr('app_name'),
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ),
             _roundButton(
               context,
               icon: Icons.search_rounded,
-              tooltip: 'Cari berita',
+              tooltip: tr('search_news'),
               onTap: () => appState.go('news'),
             ),
           ] else ...[
@@ -230,7 +235,7 @@ class TopBar extends StatelessWidget {
                     onSubmitted: appState.search,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      hintText: 'Cari berita, lalu tekan Enter',
+                      hintText: tr('search_hint'),
                       prefixIcon: const Icon(Icons.search_rounded),
                       filled: true,
                       fillColor: c.surface,
@@ -253,13 +258,13 @@ class TopBar extends StatelessWidget {
           _roundButton(
             context,
             icon: dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            tooltip: 'Ganti mode terang atau gelap',
+            tooltip: tr('theme_toggle'),
             onTap: () => appState.toggleTheme(Theme.of(context).brightness),
           ),
           _roundButton(
             context,
             icon: Icons.notifications_rounded,
-            tooltip: 'Notifikasi',
+            tooltip: tr('notifications'),
             onTap: () => _showNotifications(context),
           ),
         ],
@@ -353,17 +358,17 @@ class SideNav extends StatelessWidget {
             extended ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
         children: [
           if (extended)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(8, 0, 8, 22),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 22),
               child: Row(
                 children: [
-                  Logo(),
-                  SizedBox(width: 12),
+                  const Logo(),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Portal Karyawan',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      tr('app_name'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -409,7 +414,7 @@ class SideNav extends StatelessWidget {
                             ),
                             Text(
                               user.position.isEmpty
-                                  ? user.email
+                                  ? '${tr('finger_no')} ${user.fingerNo}'
                                   : user.position,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(color: c.muted, fontSize: 13),

@@ -1,10 +1,21 @@
 name: Build Android dan Web
 
+# Hanya dijalankan manual: tab Actions > Build Android dan Web > Run workflow.
 on:
-  push:
-    branches: [main]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      versi:
+        description: 'Nomor versi, misalnya 0.2.0'
+        required: true
+        type: string
+      jenis:
+        description: 'rilis = ditawarkan sebagai update ke semua pengguna. eksperimental = hanya untuk dicoba, pengguna tidak diberi tahu.'
+        required: true
+        type: choice
+        default: eksperimental
+        options:
+          - eksperimental
+          - rilis
 
 permissions:
   contents: write
@@ -17,12 +28,37 @@ concurrency:
 
 jobs:
   # APK Android, diunggah ke GitHub Releases.
-  # Jalan saat push tag (misalnya v0.1.0) atau dijalankan manual.
+  # - rilis: tag v<versi>, menjadi rilis terbaru, aplikasi menawarkan update.
+  # - eksperimental: tag v<versi>-exp.<nomor run>, ditandai pra-rilis.
+  #   Aplikasi hanya melihat rilis terbaru yang bukan pra-rilis, jadi
+  #   pengguna tidak mendapat pemberitahuan update.
   android:
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Tentukan versi dan tag
+        id: ver
+        env:
+          VERSI: ${{ inputs.versi }}
+          JENIS: ${{ inputs.jenis }}
+        run: |
+          VERSI="${VERSI#v}"
+          if ! echo "$VERSI" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Versi harus berbentuk angka.angka.angka, misalnya 0.2.0 (diisi: $VERSI)"
+            exit 1
+          fi
+          if [ "$JENIS" = "rilis" ]; then
+            TAG="v$VERSI"
+            if [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then
+              echo "::error::Rilis $TAG sudah ada. Naikkan nomor versinya."
+              exit 1
+            fi
+          else
+            TAG="v$VERSI-exp.$GITHUB_RUN_NUMBER"
+          fi
+          echo "versi=$VERSI" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v5
         with:
@@ -44,7 +80,31 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build apk --release
+      # Kunci tanda tangan dari GitHub Secrets. Update dalam aplikasi hanya bisa
+      # dipasang kalau setiap rilis ditandatangani dengan kunci yang sama.
+      - name: Siapkan kunci tanda tangan
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::Secret KEYSTORE_BASE64 belum diisi. APK ditandatangani kunci debug sementara, jadi tidak bisa dipasang sebagai update."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+
+      # Aplikasi membandingkan nomor versi ini dengan rilis terbaru untuk
+      # menawarkan update.
+      - name: Build APK
+        run: flutter build apk --release --build-name="${{ steps.ver.outputs.versi }}" --build-number="$GITHUB_RUN_NUMBER"
 
       - name: Ganti nama APK
         run: mv build/app/outputs/flutter-apk/app-release.apk portal-karyawan.apk
@@ -52,14 +112,20 @@ jobs:
       - name: Unggah ke GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('build-{0}', github.run_number) }}
-          name: ${{ github.ref_type == 'tag' && github.ref_name || format('Build {0}', github.run_number) }}
+          tag_name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ inputs.jenis == 'rilis' && steps.ver.outputs.tag || format('{0} (eksperimental)', steps.ver.outputs.tag) }}
           files: portal-karyawan.apk
+          prerelease: ${{ inputs.jenis != 'rilis' }}
+          make_latest: ${{ inputs.jenis == 'rilis' }}
           generate_release_notes: true
 
   # Web (PWA), dipasang di GitHub Pages yang sudah HTTPS.
+  # Hanya untuk jenis rilis dari branch main, karena versi web langsung
+  # dipakai semua pengguna begitu dipasang.
   web:
-    if: github.ref == 'refs/heads/main'
+    needs: android
+    if: inputs.jenis == 'rilis' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -82,7 +148,9 @@ jobs:
 
       # base-href harus sama dengan nama repo karena alamat GitHub Pages
       # berbentuk https://<user>.github.io/<nama-repo>/
-      - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      - env:
+          VERSI: ${{ inputs.versi }}
+        run: flutter build web --release --build-name="${VERSI#v}" --base-href "/${{ github.event.repository.name }}/"
 
       - uses: actions/configure-pages@v5
 

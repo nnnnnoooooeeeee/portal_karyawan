@@ -1,62 +1,41 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
+import '../notify.dart';
 import '../state.dart';
 import '../theme.dart';
+import '../updater.dart';
 import '../widgets.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  Future<void> _edit(BuildContext context) async {
-    final user = appState.user!;
-    final name = TextEditingController(text: user.name);
-    final department = TextEditingController(text: user.department);
-    final position = TextEditingController(text: user.position);
+  Future<void> _testNotification(BuildContext context) async {
+    final result = await showTestNotification();
+    if (context.mounted) toast(context, tr(result));
+  }
 
-    final save = await showDialog<bool>(
+  Future<void> _confirmLogout(BuildContext context) async {
+    final yes = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Ubah profil'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                    controller: name,
-                    decoration: fieldDeco(context, 'Nama lengkap')),
-                const SizedBox(height: 12),
-                TextField(
-                    controller: department,
-                    decoration: fieldDeco(context, 'Departemen')),
-                const SizedBox(height: 12),
-                TextField(
-                    controller: position,
-                    decoration: fieldDeco(context, 'Jabatan')),
-              ],
-            ),
-          ),
+          title: Text(tr('logout_title')),
+          content: Text(tr('logout_body')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
+              child: Text(tr('cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Simpan'),
+              child: Text(tr('logout')),
             ),
           ],
         );
       },
     );
-
-    if (save == true) {
-      appState.updateProfile(
-        name: name.text,
-        department: department.text,
-        position: position.text,
-      );
-    }
+    if (yes == true) appState.logout();
   }
 
   @override
@@ -76,7 +55,7 @@ class ProfilePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label, style: TextStyle(color: c.muted, fontSize: 13)),
-                  Text(value.isEmpty ? 'Belum diisi' : value,
+                  Text(value.isEmpty ? tr('not_set') : value,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
@@ -86,10 +65,25 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
+    Widget section(String title, List<Widget> children) {
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title,
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      );
+    }
+
     return PageBody(
       maxWidth: 600,
       children: [
-        const PageHeader('Profil'),
+        PageHeader(tr('nav_profile')),
         AppCard(
           color: c.hero,
           child: Row(
@@ -108,10 +102,8 @@ class ProfilePage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    Text(
-                      user.position.isEmpty ? user.email : user.position,
-                      style: TextStyle(color: c.heroSub),
-                    ),
+                    if (user.position.isNotEmpty)
+                      Text(user.position, style: TextStyle(color: c.heroSub)),
                   ],
                 ),
               ),
@@ -123,56 +115,85 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              info(Icons.mail_rounded, 'Email', user.email),
-              info(Icons.badge_rounded, 'Nomor induk karyawan', user.employeeNo),
-              info(Icons.apartment_rounded, 'Departemen', user.department),
-              info(Icons.work_rounded, 'Jabatan', user.position),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _edit(context),
-                icon: const Icon(Icons.edit_rounded),
-                label: const Text('Ubah profil'),
-              ),
+              info(Icons.badge_rounded, tr('nik'), user.nik),
+              info(Icons.fingerprint_rounded, tr('finger_no'), user.fingerNo),
+              info(Icons.apartment_rounded, tr('department'), user.department),
+              info(Icons.work_rounded, tr('position'), user.position),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        section(tr('appearance'), [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Text('Tampilan',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: const Text('Ikuti perangkat'),
-                    selected: appState.themeMode == ThemeMode.system,
-                    onSelected: (_) => appState.setTheme(ThemeMode.system),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Terang'),
-                    selected: appState.themeMode == ThemeMode.light,
-                    onSelected: (_) => appState.setTheme(ThemeMode.light),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Gelap'),
-                    selected: appState.themeMode == ThemeMode.dark,
-                    onSelected: (_) => appState.setTheme(ThemeMode.dark),
-                  ),
-                ],
+              ChoiceChip(
+                label: Text(tr('theme_system')),
+                selected: appState.themeMode == ThemeMode.system,
+                onSelected: (_) => appState.setTheme(ThemeMode.system),
+              ),
+              ChoiceChip(
+                label: Text(tr('theme_light')),
+                selected: appState.themeMode == ThemeMode.light,
+                onSelected: (_) => appState.setTheme(ThemeMode.light),
+              ),
+              ChoiceChip(
+                label: Text(tr('theme_dark')),
+                selected: appState.themeMode == ThemeMode.dark,
+                onSelected: (_) => appState.setTheme(ThemeMode.dark),
               ),
             ],
           ),
-        ),
+        ]),
+        const SizedBox(height: 16),
+        section(tr('language'), [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final l in kLanguages)
+                ChoiceChip(
+                  label: Text(l.name),
+                  selected: currentLanguage.code == l.code,
+                  onSelected: (_) => appState.setLanguage(l.code),
+                ),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 16),
+        section(tr('notifications'), [
+          Text(tr('notif_test_desc'), style: TextStyle(color: c.muted)),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _testNotification(context),
+            icon: const Icon(Icons.notifications_active_rounded),
+            label: Text(tr('notif_test_button')),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        section(tr('about_app'), [
+          FutureBuilder<String>(
+            future: appVersion(),
+            builder: (context, snap) => Text(
+              tr('app_version', {'v': snap.data ?? '…'}),
+              style: TextStyle(color: c.muted),
+            ),
+          ),
+          if (updateSupported) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => checkForUpdate(manual: true),
+              icon: const Icon(Icons.system_update_rounded),
+              label: Text(tr('check_update')),
+            ),
+          ],
+        ]),
         const SizedBox(height: 16),
         OutlinedButton.icon(
-          onPressed: appState.logout,
+          onPressed: () => _confirmLogout(context),
           icon: const Icon(Icons.logout_rounded),
-          label: const Text('Keluar'),
+          label: Text(tr('logout')),
         ),
       ],
     );

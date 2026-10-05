@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -26,7 +27,7 @@ class HomePage extends StatelessWidget {
         children: [
           TextSpan(text: '${s.greeting}, ${s.user!.firstName}.\n'),
           TextSpan(
-            text: 'Ada kabar apa hari ini?',
+            text: tr('home_question'),
             style: TextStyle(color: c.headline),
           ),
         ],
@@ -57,13 +58,13 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Slip gaji terbaru',
+                Text(tr('latest_payslip'),
                     style: TextStyle(
                         color: c.muted,
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
                 Text(
-                  '${kBulan[latestSlip.month - 1]} ${latestSlip.year}',
+                  '${monthNames[latestSlip.month - 1]} ${latestSlip.year}',
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w800),
                 ),
@@ -72,7 +73,7 @@ class HomePage extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => s.go('payslip'),
-            child: const Text('Lihat'),
+            child: Text(tr('view')),
           ),
         ],
       ),
@@ -84,20 +85,21 @@ class HomePage extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Event seru berikutnya',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  tr('next_events'),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w800),
                 ),
               ),
               TextButton(
                 onPressed: () => s.go('events'),
-                child: const Text('Semua'),
+                child: Text(tr('all')),
               ),
             ],
           ),
           if (upcoming.isEmpty)
-            Text('Belum ada event terjadwal.', style: TextStyle(color: c.muted)),
+            Text(tr('no_events_scheduled'), style: TextStyle(color: c.muted)),
           for (final e in upcoming)
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -112,23 +114,23 @@ class HomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Suaramu penting',
+          Text(tr('voice_matters'),
               style: TextStyle(
                   color: c.ink, fontSize: 16, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(
             pending.isEmpty
-                ? 'Semua survey sudah kamu isi. Terima kasih!'
+                ? tr('all_surveys_done')
                 : pending.first.title,
             style: TextStyle(color: c.ink, fontWeight: FontWeight.w600),
           ),
           if (pending.isNotEmpty) ...[
-            Text('Cuma ${pending.first.minutes} menit',
+            Text(tr('only_minutes', {'n': pending.first.minutes}),
                 style: TextStyle(color: c.muted, fontSize: 14)),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => s.go('survey'),
-              child: const Text('Isi survey'),
+              child: Text(tr('fill_survey')),
             ),
           ],
         ],
@@ -147,7 +149,7 @@ class HomePage extends StatelessWidget {
           for (final p in feed) PostCard(p),
           OutlinedButton(
             onPressed: () => s.go('news'),
-            child: const Text('Lihat semua berita'),
+            child: Text(tr('see_all_news')),
           ),
         ];
         final side = <Widget>[slipCard, eventsCard, surveyCard];
@@ -222,12 +224,12 @@ class QuickTiles extends StatelessWidget {
 
     return Row(
       children: [
-        tile('Slip Gaji', Icons.account_balance_wallet_rounded, c.tint, c.ink,
+        tile(tr('nav_payslip'), Icons.account_balance_wallet_rounded, c.tint, c.ink,
             'payslip'),
         const SizedBox(width: 10),
-        tile('Event', Icons.event_rounded, c.sky, kInkOnSky, 'events'),
+        tile(tr('nav_events'), Icons.event_rounded, c.sky, kInkOnSky, 'events'),
         const SizedBox(width: 10),
-        tile(pending > 0 ? 'Survey ($pending)' : 'Survey',
+        tile(pending > 0 ? '${tr('nav_survey')} ($pending)' : tr('nav_survey'),
             Icons.fact_check_rounded, c.pop, c.onPop, 'survey'),
       ],
     );
@@ -252,7 +254,7 @@ class PinnedCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'JANGAN SAMPAI TERLEWAT',
+                  tr('dont_miss'),
                   style: TextStyle(
                     color: c.onPop,
                     fontSize: 12,

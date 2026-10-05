@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -45,15 +46,17 @@ class ServicesPage extends StatelessWidget {
 
     return PageBody(
       children: [
-        const PageHeader('Layanan', subtitle: 'Semua urusanmu di satu tempat'),
+        PageHeader(tr('nav_services'), subtitle: tr('services_subtitle')),
         ...spaced([
-          tile('Cuti', 'Sisa ${appState.leaveRemaining} hari',
+          tile(tr('nav_leave'), tr('leave_left', {'n': appState.leaveRemaining}),
               Icons.beach_access_rounded, c.hero, Colors.white, 'leave'),
-          tile('Slip Gaji', 'Lihat rincian gaji bulanan',
+          tile(tr('nav_payslip'), tr('payslip_sub'),
               Icons.account_balance_wallet_rounded, c.sky, kInkOnSky, 'payslip'),
           tile(
-              'Survey',
-              pending > 0 ? '$pending survey menunggu' : 'Semua sudah diisi',
+              tr('nav_survey'),
+              pending > 0
+                  ? tr('surveys_waiting', {'n': pending})
+                  : tr('all_filled'),
               Icons.fact_check_rounded,
               c.pop,
               c.onPop,
@@ -66,11 +69,12 @@ class ServicesPage extends StatelessWidget {
 
 // ------------------------------------------------------------------- Cuti
 
-/// Kartu navy berisi sisa cuti tahunan.
+/// Kartu navy berisi sisa cuti tahunan. Dengan [link], kartu bisa diketuk
+/// untuk membuka halaman cuti.
 class LeaveHero extends StatelessWidget {
   final bool compact;
-  final bool showButton;
-  const LeaveHero({super.key, this.compact = false, this.showButton = true});
+  final bool link;
+  const LeaveHero({super.key, this.compact = false, this.link = true});
 
   @override
   Widget build(BuildContext context) {
@@ -92,30 +96,23 @@ class LeaveHero extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        const Text(
-          'dari ${AppState.leaveQuota} hari',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        Text(
+          tr('leave_of', {'n': AppState.leaveQuota}),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ],
     );
 
-    final button = FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: kNavy,
-      ),
-      onPressed: () => appState.go('leave'),
-      child: Text(compact ? 'Ajukan' : 'Ajukan cuti'),
-    );
-
     final label = Text(
-      'Sisa cuti tahunan',
+      tr('leave_remaining'),
       style: TextStyle(
           color: c.heroSub, fontSize: 14, fontWeight: FontWeight.w700),
     );
 
     return AppCard(
       color: c.hero,
+      onTap: link ? () => appState.go('leave') : null,
       child: compact
           ? Row(
               children: [
@@ -125,7 +122,8 @@ class LeaveHero extends StatelessWidget {
                     children: [label, const SizedBox(height: 4), number],
                   ),
                 ),
-                if (showButton) button,
+                if (link)
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
               ],
             )
           : Column(
@@ -144,192 +142,64 @@ class LeaveHero extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(c.sky),
                   ),
                 ),
-                if (showButton) ...[const SizedBox(height: 16), button],
               ],
             ),
     );
   }
 }
 
-class LeavePage extends StatefulWidget {
+/// Halaman cuti: hanya menampilkan sisa cuti, tanpa pengajuan.
+class LeavePage extends StatelessWidget {
   const LeavePage({super.key});
-
-  @override
-  State<LeavePage> createState() => _LeavePageState();
-}
-
-class _LeavePageState extends State<LeavePage> {
-  static const _types = ['Cuti Tahunan', 'Sakit', 'Izin'];
-  String _type = _types.first;
-  DateTime? _start;
-  DateTime? _end;
-  final _reason = TextEditingController();
-  String? _error;
-
-  @override
-  void dispose() {
-    _reason.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pick(bool isStart) async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final initial = (isStart ? _start : _end) ?? _start ?? today;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: today.subtract(const Duration(days: 30)),
-      lastDate: today.add(const Duration(days: 365)),
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      if (isStart) {
-        _start = picked;
-        if (_end == null || _end!.isBefore(picked)) _end = picked;
-      } else {
-        _end = picked;
-      }
-    });
-  }
-
-  void _submit() {
-    final start = _start;
-    final end = _end;
-    if (start == null || end == null) {
-      setState(() => _error = 'Pilih tanggal mulai dan selesai.');
-      return;
-    }
-    final err = appState.requestLeave(
-      type: _type,
-      start: start,
-      end: end,
-      reason: _reason.text,
-    );
-    if (err != null) {
-      setState(() => _error = err);
-      return;
-    }
-    setState(() {
-      _error = null;
-      _start = null;
-      _end = null;
-      _reason.clear();
-    });
-    toast(context, 'Pengajuan terkirim.');
-  }
-
-  Widget _dateButton(String label, DateTime? value, bool isStart) {
-    return Expanded(
-      child: OutlinedButton.icon(
-        onPressed: () => _pick(isStart),
-        icon: const Icon(Icons.calendar_today_rounded, size: 18),
-        label: Text(
-          value == null ? label : fmtDate(value),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final requests = appState.myLeave;
+
+    Widget line(String label, int days, {bool bold = false}) {
+      final weight = bold ? FontWeight.w800 : FontWeight.w600;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            Expanded(child: Text(label, style: TextStyle(fontWeight: weight))),
+            Text(tr('n_days', {'n': days}),
+                style: TextStyle(fontWeight: weight)),
+          ],
+        ),
+      );
+    }
 
     return PageBody(
       children: [
-        const PageHeader('Cuti', backTo: 'services'),
-        LeaveHero(showButton: false),
+        PageHeader(tr('nav_leave'), backTo: 'services'),
+        const LeaveHero(link: false),
         const SizedBox(height: 16),
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Ajukan cuti',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final t in _types)
-                    ChoiceChip(
-                      label: Text(t),
-                      selected: _type == t,
-                      onSelected: (_) => setState(() => _type = t),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _dateButton('Tanggal mulai', _start, true),
-                  const SizedBox(width: 10),
-                  _dateButton('Tanggal selesai', _end, false),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _reason,
-                maxLines: 2,
-                decoration: fieldDeco(context, 'Alasan (opsional)'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Text(
-                  _error!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 14),
-              FilledButton(
-                  onPressed: _submit, child: const Text('Kirim pengajuan')),
+              line(tr('leave_quota'), AppState.leaveQuota),
+              line(tr('leave_used'), AppState.leaveUsed),
+              Divider(height: 28, color: c.line),
+              line(tr('leave_rest'), appState.leaveRemaining, bold: true),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('Riwayat pengajuan',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 12),
-        if (requests.isEmpty)
-          Text('Belum ada pengajuan.', style: TextStyle(color: c.muted)),
-        ...spaced([
-          for (final r in requests)
-            AppCard(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${r.type}, ${r.days} hari',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w700)),
-                        Text(
-                          sameDay(r.start, r.end)
-                              ? fmtDate(r.start)
-                              : '${fmtDate(r.start)} sampai ${fmtDate(r.end)}',
-                          style: TextStyle(color: c.muted, fontSize: 14),
-                        ),
-                        const SizedBox(height: 6),
-                        Tag(r.status),
-                      ],
-                    ),
-                  ),
-                  if (r.status == 'Menunggu persetujuan')
-                    TextButton(
-                      onPressed: () => appState.cancelLeave(r),
-                      child: const Text('Batalkan'),
-                    ),
-                ],
+        const SizedBox(height: 16),
+        AppCard(
+          color: c.tint,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: c.ink),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(tr('leave_info'), style: TextStyle(color: c.ink)),
               ),
-            ),
-        ], 12),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -375,8 +245,8 @@ class _PayslipPageState extends State<PayslipPage> {
 
     return PageBody(
       children: [
-        const PageHeader('Slip Gaji',
-            subtitle: 'Angka di bawah hanya data contoh', backTo: 'services'),
+        PageHeader(tr('nav_payslip'),
+            subtitle: tr('payslip_subtitle'), backTo: 'services'),
         AppCard(
           color: c.tint,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -386,7 +256,7 @@ class _PayslipPageState extends State<PayslipPage> {
                   color: c.ink),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('Tampilkan nominal',
+                child: Text(tr('show_amounts'),
                     style:
                         TextStyle(color: c.ink, fontWeight: FontWeight.w700)),
               ),
@@ -412,11 +282,11 @@ class _PayslipPageState extends State<PayslipPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${kBulan[slips[i].month - 1]} ${slips[i].year}',
+                              '${monthNames[slips[i].month - 1]} ${slips[i].year}',
                               style: const TextStyle(
                                   fontSize: 17, fontWeight: FontWeight.w800),
                             ),
-                            Text('Diterima: ${_money(slips[i].net)}',
+                            Text(tr('received', {'v': _money(slips[i].net)}),
                                 style: TextStyle(color: c.muted)),
                           ],
                         ),
@@ -428,7 +298,7 @@ class _PayslipPageState extends State<PayslipPage> {
                   ),
                   if (_open == i) ...[
                     Divider(height: 28, color: c.line),
-                    Text('PENDAPATAN',
+                    Text(tr('earnings'),
                         style: TextStyle(
                             color: c.muted,
                             fontSize: 12,
@@ -437,7 +307,7 @@ class _PayslipPageState extends State<PayslipPage> {
                     for (final it in slips[i].items)
                       if (!it.deduction) line(it.label, _money(it.amount)),
                     const SizedBox(height: 10),
-                    Text('POTONGAN',
+                    Text(tr('deductions'),
                         style: TextStyle(
                             color: c.muted,
                             fontSize: 12,
@@ -446,9 +316,9 @@ class _PayslipPageState extends State<PayslipPage> {
                     for (final it in slips[i].items)
                       if (it.deduction) line(it.label, _money(it.amount)),
                     Divider(height: 28, color: c.line),
-                    line('Total pendapatan', _money(slips[i].gross)),
-                    line('Total potongan', _money(slips[i].deductions)),
-                    line('Gaji diterima', _money(slips[i].net), bold: true),
+                    line(tr('total_earnings'), _money(slips[i].gross)),
+                    line(tr('total_deductions'), _money(slips[i].deductions)),
+                    line(tr('net_pay'), _money(slips[i].net), bold: true),
                   ],
                 ],
               ),
@@ -467,13 +337,12 @@ class SurveyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final email = appState.user!.email;
+    final uid = appState.uid;
 
     return PageBody(
       children: [
-        const PageHeader('Survey',
-            subtitle: 'Suaramu membantu perusahaan jadi lebih baik',
-            backTo: 'services'),
+        PageHeader(tr('nav_survey'),
+            subtitle: tr('survey_subtitle'), backTo: 'services'),
         ...spaced([
           for (final s in appState.surveys)
             AppCard(
@@ -487,21 +356,21 @@ class SurveyPage extends StatelessWidget {
                   Text(s.description, style: TextStyle(color: c.muted)),
                   const SizedBox(height: 4),
                   Text(
-                    '${s.questions.length} pertanyaan, sekitar ${s.minutes} menit',
+                    tr('survey_meta', {'n': s.questions.length, 'm': s.minutes}),
                     style: TextStyle(color: c.muted, fontSize: 14),
                   ),
                   const SizedBox(height: 12),
-                  if (s.answeredBy.contains(email))
-                    const Align(
+                  if (s.answeredBy.contains(uid))
+                    Align(
                       alignment: Alignment.centerLeft,
-                      child: Tag('Sudah diisi'),
+                      child: Tag(tr('survey_done')),
                     )
                   else
                     FilledButton(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(builder: (_) => SurveyFill(s)),
                       ),
-                      child: const Text('Isi survey'),
+                      child: Text(tr('fill_survey')),
                     ),
                 ],
               ),
@@ -540,12 +409,12 @@ class _SurveyFillState extends State<SurveyFill> {
       final missing = (qs[i].type == 'choice' && !_choice.containsKey(i)) ||
           (qs[i].type == 'rating' && !_rating.containsKey(i));
       if (missing) {
-        setState(() => _error = 'Pertanyaan ${i + 1} belum dijawab.');
+        setState(() => _error = tr('question_missing', {'n': i + 1}));
         return;
       }
     }
     appState.submitSurvey(widget.survey);
-    toast(context, 'Jawabanmu tersimpan. Terima kasih!');
+    toast(context, tr('answers_saved'));
     Navigator.of(context).pop();
   }
 
@@ -571,7 +440,7 @@ class _SurveyFillState extends State<SurveyFill> {
         children: [
           for (var star = 1; star <= 5; star++)
             IconButton(
-              tooltip: '$star dari 5',
+              tooltip: tr('rating_of', {'n': star}),
               onPressed: () => setState(() => _rating[i] = star),
               iconSize: 34,
               icon: Icon(
@@ -586,7 +455,7 @@ class _SurveyFillState extends State<SurveyFill> {
       input = TextField(
         controller: controller,
         maxLines: 3,
-        decoration: fieldDeco(context, 'Jawabanmu (opsional)'),
+        decoration: fieldDeco(context, tr('your_answer')),
       );
     }
 
@@ -613,7 +482,7 @@ class _SurveyFillState extends State<SurveyFill> {
       appBar: AppBar(
         backgroundColor: c.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Survey'),
+        title: Text(tr('nav_survey')),
       ),
       body: SafeArea(
         child: PageBody(
@@ -640,7 +509,7 @@ class _SurveyFillState extends State<SurveyFill> {
               ),
             ],
             const SizedBox(height: 16),
-            FilledButton(onPressed: _submit, child: const Text('Kirim jawaban')),
+            FilledButton(onPressed: _submit, child: Text(tr('send_answers'))),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -10,6 +11,10 @@ void openPost(BuildContext context, Post post) {
     MaterialPageRoute<void>(builder: (_) => PostDetail(post)),
   );
 }
+
+/// Nama kategori dalam bahasa aktif. Kategori yang belum punya terjemahan
+/// ditampilkan apa adanya.
+String catLabel(String category) => trOr('cat_$category', category);
 
 String _initialsOf(String name) {
   final parts = name.split(' ').where((s) => s.isNotEmpty).toList();
@@ -52,13 +57,13 @@ class _NewsPageState extends State<NewsPage> {
 
     return PageBody(
       children: [
-        const PageHeader('Berita', subtitle: 'Kabar terbaru dari perusahaan'),
+        PageHeader(tr('nav_news'), subtitle: tr('news_subtitle')),
         TextField(
           controller: _search,
           onChanged: appState.setNewsQuery,
           textInputAction: TextInputAction.search,
           decoration:
-              fieldDeco(context, 'Cari berita', icon: Icons.search_rounded),
+              fieldDeco(context, tr('search_news'), icon: Icons.search_rounded),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -67,7 +72,7 @@ class _NewsPageState extends State<NewsPage> {
           children: [
             for (final cat in const ['Semua', 'Berita', 'Pengumuman', 'Umum'])
               ChoiceChip(
-                label: Text(cat),
+                label: Text(catLabel(cat)),
                 selected: _category == cat,
                 onSelected: (_) => setState(() => _category = cat),
               ),
@@ -78,7 +83,7 @@ class _NewsPageState extends State<NewsPage> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Text(
-              'Tidak ada berita yang cocok.',
+              tr('no_news_match'),
               textAlign: TextAlign.center,
               style: TextStyle(color: c.muted),
             ),
@@ -96,7 +101,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final liked = post.likes.contains(appState.user!.email);
+    final liked = post.likes.contains(appState.uid);
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -126,7 +131,7 @@ class PostCard extends StatelessWidget {
                         style: TextStyle(color: c.muted, fontSize: 13),
                       ),
                     ),
-                    Tag(post.category),
+                    Tag(catLabel(post.category)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -151,16 +156,16 @@ class PostCard extends StatelessWidget {
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       label: post.likes.isEmpty
-                          ? 'Suka'
-                          : 'Suka (${post.likes.length})',
+                          ? tr('like')
+                          : '${tr('like')} (${post.likes.length})',
                       highlighted: liked,
                       onTap: () => appState.toggleLike(post),
                     ),
                     ActionPill(
                       icon: Icons.chat_bubble_outline_rounded,
                       label: post.comments.isEmpty
-                          ? 'Komentar'
-                          : 'Komentar (${post.comments.length})',
+                          ? tr('comments')
+                          : '${tr('comments')} (${post.comments.length})',
                       onTap: () => openPost(context, post),
                     ),
                   ],
@@ -248,13 +253,13 @@ class _PostDetailState extends State<PostDetail> {
         final post = widget.post;
         final user = appState.user;
         if (user == null) return const SizedBox.shrink();
-        final liked = post.likes.contains(user.email);
+        final liked = post.likes.contains(user.fingerNo);
 
         return Scaffold(
           appBar: AppBar(
             backgroundColor: c.bg,
             surfaceTintColor: Colors.transparent,
-            title: Text(post.category),
+            title: Text(catLabel(post.category)),
           ),
           body: SafeArea(
             child: PageBody(
@@ -292,21 +297,21 @@ class _PostDetailState extends State<PostDetail> {
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     label: post.likes.isEmpty
-                        ? 'Suka'
-                        : 'Suka (${post.likes.length})',
+                        ? tr('like')
+                        : '${tr('like')} (${post.likes.length})',
                     highlighted: liked,
                     onTap: () => appState.toggleLike(post),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Komentar (${post.comments.length})',
+                  '${tr('comments')} (${post.comments.length})',
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
                 if (post.comments.isEmpty)
-                  Text('Jadi yang pertama berkomentar.',
+                  Text(tr('first_comment'),
                       style: TextStyle(color: c.muted)),
                 for (final cm in post.comments)
                   Padding(
@@ -350,12 +355,12 @@ class _PostDetailState extends State<PostDetail> {
                       child: TextField(
                         controller: _comment,
                         onSubmitted: (_) => _send(),
-                        decoration: fieldDeco(context, 'Tulis komentar'),
+                        decoration: fieldDeco(context, tr('write_comment')),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton.filled(
-                      tooltip: 'Kirim komentar',
+                      tooltip: tr('send_comment'),
                       onPressed: _send,
                       icon: const Icon(Icons.send_rounded),
                     ),

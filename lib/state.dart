@@ -3,11 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 
+const String kDemoFingerNo = '1001';
+const String kDemoPassword = 'demo123';
+
 /// State aplikasi untuk proof of concept.
-/// Semua data ada di memori. Hanya akun, sesi login, dan pilihan tema
-/// yang disimpan di perangkat lewat shared_preferences.
+/// Semua data ada di memori. Hanya akun, sesi login, pilihan tema, dan
+/// pilihan bahasa yang disimpan di perangkat lewat shared_preferences.
 class AppState extends ChangeNotifier {
   SharedPreferences? _prefs;
 
@@ -19,16 +23,15 @@ class AppState extends ChangeNotifier {
   String newsQuery = '';
 
   static const int leaveQuota = 12;
-  static const int leaveUsedBefore = 4;
+  static const int leaveUsed = 4;
 
   late final List<Post> posts = _seedPosts();
   late final List<EventItem> events = _seedEvents();
   late final List<Survey> surveys = _seedSurveys();
   late final List<Payslip> payslips = _seedPayslips();
-  final List<LeaveRequest> leaveRequests = [];
-  final List<String> notifications = [
-    'Slip gaji bulan lalu sudah tersedia.',
-    'Ada survey baru yang menunggu jawabanmu.',
+  final List<AppNote> notifications = [
+    const AppNote('note_payslip_ready'),
+    const AppNote('note_new_survey'),
   ];
 
   // ---------- Penyimpanan ----------
@@ -41,20 +44,25 @@ class AppState extends ChangeNotifier {
         final list = jsonDecode(raw) as List;
         users = list
             .map((e) => AppUser.fromJson(Map<String, dynamic>.from(e as Map)))
+            // Akun lama yang dibuat dengan email tidak punya no. finger,
+            // jadi tidak bisa dipakai login lagi.
+            .where((u) => u.fingerNo.isNotEmpty)
             .toList();
       }
       final theme = _prefs!.getString('theme');
       if (theme == 'light') themeMode = ThemeMode.light;
       if (theme == 'dark') themeMode = ThemeMode.dark;
+      final lang = _prefs!.getString('lang');
+      if (lang != null) setCurrentLanguage(lang);
     } catch (_) {
       // Penyimpanan tidak tersedia: lanjut dengan data di memori saja.
     }
-    if (!users.any((u) => u.email == 'demo@perusahaan.com')) {
+    if (!users.any((u) => u.fingerNo == kDemoFingerNo)) {
       users.add(AppUser(
         name: 'Karyawan Demo',
-        email: 'demo@perusahaan.com',
-        password: 'demo123',
-        employeeNo: 'EMP-0001',
+        nik: 'EMP-0001',
+        fingerNo: kDemoFingerNo,
+        password: kDemoPassword,
         department: 'Umum',
         position: 'Staf',
       ));
@@ -63,7 +71,7 @@ class AppState extends ChangeNotifier {
       final session = _prefs?.getString('session');
       if (session != null) {
         for (final u in users) {
-          if (u.email == session) user = u;
+          if (u.fingerNo == session) user = u;
         }
       }
     } catch (_) {}
@@ -78,45 +86,51 @@ class AppState extends ChangeNotifier {
 
   // ---------- Akun ----------
 
+  /// No. finger karyawan yang sedang login, dipakai sebagai penanda
+  /// siapa yang menyukai berita, ikut event, atau mengisi survey.
+  String get uid => user!.fingerNo;
+
   /// Mengembalikan pesan error, atau null kalau berhasil.
-  String? login(String email, String password) {
-    final e = email.trim().toLowerCase();
+  String? login(String fingerNo, String password) {
+    final f = fingerNo.trim();
     for (final u in users) {
-      if (u.email == e) {
-        if (u.password != password) return 'Kata sandi salah.';
+      if (u.fingerNo == f) {
+        if (u.password != password) return tr('err_wrong_password');
         user = u;
         page = 'home';
         try {
-          _prefs?.setString('session', u.email);
+          _prefs?.setString('session', u.fingerNo);
         } catch (_) {}
         notifyListeners();
         return null;
       }
     }
-    return 'Email belum terdaftar.';
+    return tr('err_finger_unknown');
   }
 
   String? register({
     required String name,
-    required String email,
+    required String nik,
+    required String fingerNo,
+    required String department,
+    required String position,
     required String password,
-    required String employeeNo,
   }) {
-    final e = email.trim().toLowerCase();
-    if (name.trim().isEmpty) return 'Nama wajib diisi.';
-    if (!e.contains('@') || !e.contains('.')) {
-      return 'Format email tidak valid.';
-    }
-    if (password.length < 6) return 'Kata sandi minimal 6 karakter.';
-    if (users.any((u) => u.email == e)) return 'Email sudah terdaftar.';
+    final f = fingerNo.trim();
+    if (name.trim().isEmpty) return tr('err_name_required');
+    if (f.isEmpty) return tr('err_finger_required');
+    if (password.length < 6) return tr('err_password_short');
+    if (users.any((u) => u.fingerNo == f)) return tr('err_finger_taken');
     users.add(AppUser(
       name: name.trim(),
-      email: e,
+      nik: nik.trim(),
+      fingerNo: f,
       password: password,
-      employeeNo: employeeNo.trim(),
+      department: department.trim(),
+      position: position.trim(),
     ));
     _saveUsers();
-    return login(e, password);
+    return login(f, password);
   }
 
   void logout() {
@@ -128,21 +142,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProfile({
-    required String name,
-    required String department,
-    required String position,
-  }) {
-    final u = user;
-    if (u == null) return;
-    if (name.trim().isNotEmpty) u.name = name.trim();
-    u.department = department.trim();
-    u.position = position.trim();
-    _saveUsers();
-    notifyListeners();
-  }
-
-  // ---------- Navigasi dan tema ----------
+  // ---------- Navigasi, tema, dan bahasa ----------
 
   void go(String id) {
     page = id;
@@ -175,22 +175,29 @@ class AppState extends ChangeNotifier {
     setTheme(current == Brightness.dark ? ThemeMode.light : ThemeMode.dark);
   }
 
+  void setLanguage(String code) {
+    setCurrentLanguage(code);
+    try {
+      _prefs?.setString('lang', currentLanguage.code);
+    } catch (_) {}
+    notifyListeners();
+  }
+
   String get greeting {
     final h = DateTime.now().hour;
-    if (h < 11) return 'Pagi';
-    if (h < 15) return 'Siang';
-    if (h < 19) return 'Sore';
-    return 'Malam';
+    if (h < 11) return tr('greet_morning');
+    if (h < 15) return tr('greet_midday');
+    if (h < 19) return tr('greet_afternoon');
+    return tr('greet_night');
   }
 
   // ---------- Berita ----------
 
   void toggleLike(Post p) {
-    final e = user!.email;
-    if (p.likes.contains(e)) {
-      p.likes.remove(e);
+    if (p.likes.contains(uid)) {
+      p.likes.remove(uid);
     } else {
-      p.likes.add(e);
+      p.likes.add(uid);
     }
     notifyListeners();
   }
@@ -212,13 +219,12 @@ class AppState extends ChangeNotifier {
   }
 
   void toggleGoing(EventItem ev) {
-    final e = user!.email;
-    if (ev.going.contains(e)) {
-      ev.going.remove(e);
-      notifications.insert(0, 'Kamu batal ikut "${ev.title}".');
+    if (ev.going.contains(uid)) {
+      ev.going.remove(uid);
+      notifications.insert(0, AppNote('note_event_cancel', {'title': ev.title}));
     } else {
-      ev.going.add(e);
-      notifications.insert(0, 'Kamu terdaftar di "${ev.title}".');
+      ev.going.add(uid);
+      notifications.insert(0, AppNote('note_event_join', {'title': ev.title}));
     }
     notifyListeners();
   }
@@ -226,60 +232,18 @@ class AppState extends ChangeNotifier {
   // ---------- Survey ----------
 
   List<Survey> get pendingSurveys =>
-      surveys.where((s) => !s.answeredBy.contains(user!.email)).toList();
+      surveys.where((s) => !s.answeredBy.contains(uid)).toList();
 
   void submitSurvey(Survey s) {
-    s.answeredBy.add(user!.email);
-    notifications.insert(0, 'Terima kasih sudah mengisi "${s.title}".');
+    s.answeredBy.add(uid);
+    notifications.insert(0, AppNote('note_survey_thanks', {'title': s.title}));
     notifyListeners();
   }
 
   // ---------- Cuti ----------
 
-  List<LeaveRequest> get myLeave =>
-      leaveRequests.where((r) => r.email == user!.email).toList();
-
-  int get leaveRemaining {
-    var used = leaveUsedBefore;
-    for (final r in myLeave) {
-      if (r.type == 'Cuti Tahunan' && r.status != 'Dibatalkan') used += r.days;
-    }
-    return leaveQuota - used;
-  }
-
-  String? requestLeave({
-    required String type,
-    required DateTime start,
-    required DateTime end,
-    required String reason,
-  }) {
-    if (end.isBefore(start)) {
-      return 'Tanggal selesai harus setelah tanggal mulai.';
-    }
-    final days = end.difference(start).inDays + 1;
-    if (type == 'Cuti Tahunan' && days > leaveRemaining) {
-      return 'Sisa cuti tahunan tidak cukup.';
-    }
-    leaveRequests.insert(
-      0,
-      LeaveRequest(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        email: user!.email,
-        type: type,
-        reason: reason.trim(),
-        start: start,
-        end: end,
-      ),
-    );
-    notifications.insert(0, 'Pengajuan $type ($days hari) terkirim.');
-    notifyListeners();
-    return null;
-  }
-
-  void cancelLeave(LeaveRequest r) {
-    r.status = 'Dibatalkan';
-    notifyListeners();
-  }
+  /// Karyawan hanya bisa melihat sisa cuti, tidak mengajukan dari aplikasi.
+  int get leaveRemaining => leaveQuota - leaveUsed;
 
   // ---------- Data contoh ----------
 

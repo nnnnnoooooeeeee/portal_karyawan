@@ -1,36 +1,39 @@
+import 'l10n.dart';
+
 class AppUser {
-  String name, email, password, employeeNo, department, position;
+  String name, nik, fingerNo, password, department, position;
 
   AppUser({
     required this.name,
-    required this.email,
+    required this.fingerNo,
     required this.password,
-    this.employeeNo = '',
+    this.nik = '',
     this.department = '',
     this.position = '',
   });
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        'email': email,
+        'nik': nik,
+        'fingerNo': fingerNo,
         'password': password,
-        'employeeNo': employeeNo,
         'department': department,
         'position': position,
       };
 
   factory AppUser.fromJson(Map<String, dynamic> j) => AppUser(
         name: (j['name'] ?? '').toString(),
-        email: (j['email'] ?? '').toString(),
+        // 'employeeNo' adalah nama lama untuk NIK di data yang tersimpan.
+        nik: (j['nik'] ?? j['employeeNo'] ?? '').toString(),
+        fingerNo: (j['fingerNo'] ?? '').toString(),
         password: (j['password'] ?? '').toString(),
-        employeeNo: (j['employeeNo'] ?? '').toString(),
         department: (j['department'] ?? '').toString(),
         position: (j['position'] ?? '').toString(),
       );
 
   String get firstName {
     final parts = name.trim().split(RegExp(r'\s+'));
-    return parts.isEmpty || parts.first.isEmpty ? 'Kamu' : parts.first;
+    return parts.isEmpty || parts.first.isEmpty ? tr('you') : parts.first;
   }
 
   String get initials {
@@ -105,22 +108,14 @@ class Survey {
   });
 }
 
-class LeaveRequest {
-  final String id, email, type, reason;
-  final DateTime start, end;
-  String status;
+/// Satu baris di daftar notifikasi dalam aplikasi. Teksnya disimpan sebagai
+/// kunci terjemahan supaya ikut berubah saat bahasa diganti.
+class AppNote {
+  final String key;
+  final Map<String, Object> args;
+  const AppNote(this.key, [this.args = const {}]);
 
-  LeaveRequest({
-    required this.id,
-    required this.email,
-    required this.type,
-    required this.reason,
-    required this.start,
-    required this.end,
-    this.status = 'Menunggu persetujuan',
-  });
-
-  int get days => end.difference(start).inDays + 1;
+  String get text => tr(key, args);
 }
 
 class PayItem {
@@ -154,17 +149,11 @@ class Payslip {
   int get net => gross - deductions;
 }
 
-const List<String> kBulan = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-];
-const List<String> kBulanPendek = [
-  'JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN',
-  'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES',
-];
-const List<String> kHari = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+List<String> get monthNames => tr('months').split(',');
+List<String> get monthNamesShort => tr('months_short').split(',');
+List<String> get dayNames => tr('days').split(',');
 
-String fmtDate(DateTime d) => '${d.day} ${kBulan[d.month - 1]} ${d.year}';
+String fmtDate(DateTime d) => '${d.day} ${monthNames[d.month - 1]} ${d.year}';
 
 String fmtTime(DateTime d) =>
     '${d.hour.toString().padLeft(2, '0')}.${d.minute.toString().padLeft(2, '0')}';
@@ -181,11 +170,11 @@ String fmtRupiah(int v) {
 
 String timeAgo(DateTime t) {
   final diff = DateTime.now().difference(t);
-  if (diff.inMinutes < 1) return 'baru saja';
-  if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
-  if (diff.inHours < 24) return '${diff.inHours} jam lalu';
-  if (diff.inDays == 1) return 'kemarin';
-  if (diff.inDays < 30) return '${diff.inDays} hari lalu';
+  if (diff.inMinutes < 1) return tr('just_now');
+  if (diff.inMinutes < 60) return tr('minutes_ago', {'n': diff.inMinutes});
+  if (diff.inHours < 24) return tr('hours_ago', {'n': diff.inHours});
+  if (diff.inDays == 1) return tr('yesterday');
+  if (diff.inDays < 30) return tr('days_ago', {'n': diff.inDays});
   return fmtDate(t);
 }
 

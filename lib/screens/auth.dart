@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -17,15 +18,19 @@ class _AuthScreenState extends State<AuthScreen> {
   String? _error;
 
   final _name = TextEditingController();
-  final _employeeNo = TextEditingController();
-  final _email = TextEditingController();
+  final _nik = TextEditingController();
+  final _fingerNo = TextEditingController();
+  final _department = TextEditingController();
+  final _position = TextEditingController();
   final _password = TextEditingController();
 
   @override
   void dispose() {
     _name.dispose();
-    _employeeNo.dispose();
-    _email.dispose();
+    _nik.dispose();
+    _fingerNo.dispose();
+    _department.dispose();
+    _position.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -35,12 +40,14 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_register) {
       err = appState.register(
         name: _name.text,
-        email: _email.text,
+        nik: _nik.text,
+        fingerNo: _fingerNo.text,
+        department: _department.text,
+        position: _position.text,
         password: _password.text,
-        employeeNo: _employeeNo.text,
       );
     } else {
-      err = appState.login(_email.text, _password.text);
+      err = appState.login(_fingerNo.text, _password.text);
     }
     if (err != null && mounted) setState(() => _error = err);
   }
@@ -49,8 +56,8 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _register = false;
       _error = null;
-      _email.text = 'demo@perusahaan.com';
-      _password.text = 'demo123';
+      _fingerNo.text = kDemoFingerNo;
+      _password.text = kDemoPassword;
     });
   }
 
@@ -58,6 +65,21 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
+
+    Widget field(TextEditingController controller, String label, IconData icon,
+        {TextInputType? keyboard}) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboard,
+          textInputAction: TextInputAction.next,
+          decoration: fieldDeco(context, label, icon: icon),
+        ),
+      );
+    }
+
+    String optional(String key) => tr('optional', {'label': tr(key)});
 
     return Scaffold(
       body: SafeArea(
@@ -87,15 +109,28 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Portal Karyawan',
-                          style: TextStyle(
+                          tr('app_name'),
+                          style: const TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w800),
                         ),
                       ),
+                      PopupMenuButton<String>(
+                        tooltip: tr('language'),
+                        icon: const Icon(Icons.language_rounded),
+                        initialValue: currentLanguage.code,
+                        onSelected: (code) => setState(() {
+                          appState.setLanguage(code);
+                          _error = null;
+                        }),
+                        itemBuilder: (context) => [
+                          for (final l in kLanguages)
+                            PopupMenuItem(value: l.code, child: Text(l.name)),
+                        ],
+                      ),
                       IconButton(
-                        tooltip: 'Ganti mode terang atau gelap',
+                        tooltip: tr('theme_toggle'),
                         onPressed: () => appState
                             .toggleTheme(Theme.of(context).brightness),
                         icon: Icon(dark
@@ -109,11 +144,10 @@ class _AuthScreenState extends State<AuthScreen> {
                     TextSpan(
                       children: [
                         TextSpan(
-                            text: _register ? 'Yuk, gabung.\n' : 'Halo lagi.\n'),
+                            text:
+                                '${tr(_register ? 'auth_join_1' : 'auth_hello_1')}\n'),
                         TextSpan(
-                          text: _register
-                              ? 'Buat akunmu dulu.'
-                              : 'Masuk untuk lanjut.',
+                          text: tr(_register ? 'auth_join_2' : 'auth_hello_2'),
                           style: TextStyle(color: c.headline),
                         ),
                       ],
@@ -131,41 +165,26 @@ class _AuthScreenState extends State<AuthScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (_register) ...[
-                          TextField(
-                            controller: _name,
-                            textInputAction: TextInputAction.next,
-                            decoration: fieldDeco(context, 'Nama lengkap',
-                                icon: Icons.person_rounded),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _employeeNo,
-                            textInputAction: TextInputAction.next,
-                            decoration: fieldDeco(
-                                context, 'Nomor induk karyawan (opsional)',
-                                icon: Icons.badge_rounded),
-                          ),
-                          const SizedBox(height: 12),
+                          field(_name, tr('full_name'), Icons.person_rounded),
+                          field(_nik, optional('nik'), Icons.badge_rounded),
+                          field(_department, optional('department'),
+                              Icons.apartment_rounded),
+                          field(_position, optional('position'),
+                              Icons.work_rounded),
                         ],
-                        TextField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          decoration: fieldDeco(context, 'Email',
-                              icon: Icons.mail_rounded),
-                        ),
-                        const SizedBox(height: 12),
+                        field(_fingerNo, tr('finger_no'),
+                            Icons.fingerprint_rounded,
+                            keyboard: TextInputType.number),
                         TextField(
                           controller: _password,
                           obscureText: _hide,
                           onSubmitted: (_) => _submit(),
-                          decoration: fieldDeco(context, 'Kata sandi',
+                          decoration: fieldDeco(context, tr('password'),
                                   icon: Icons.lock_rounded)
                               .copyWith(
                             suffixIcon: IconButton(
-                              tooltip: _hide
-                                  ? 'Tampilkan kata sandi'
-                                  : 'Sembunyikan kata sandi',
+                              tooltip: tr(
+                                  _hide ? 'show_password' : 'hide_password'),
                               onPressed: () => setState(() => _hide = !_hide),
                               icon: Icon(_hide
                                   ? Icons.visibility_rounded
@@ -186,7 +205,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 16),
                         FilledButton(
                           onPressed: _submit,
-                          child: Text(_register ? 'Daftar' : 'Masuk'),
+                          child: Text(tr(_register ? 'sign_up' : 'sign_in')),
                         ),
                         const SizedBox(height: 8),
                         TextButton(
@@ -194,9 +213,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             _register = !_register;
                             _error = null;
                           }),
-                          child: Text(_register
-                              ? 'Sudah punya akun? Masuk'
-                              : 'Belum punya akun? Daftar'),
+                          child: Text(
+                              tr(_register ? 'have_account' : 'no_account')),
                         ),
                       ],
                     ),
@@ -212,7 +230,10 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Coba akun demo: demo@perusahaan.com, kata sandi demo123. Ketuk untuk mengisi otomatis.',
+                            tr('demo_hint', {
+                              'finger': kDemoFingerNo,
+                              'password': kDemoPassword,
+                            }),
                             style: TextStyle(color: c.ink),
                           ),
                         ),

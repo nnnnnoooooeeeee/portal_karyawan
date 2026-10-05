@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 import 'state.dart';
 import 'theme.dart';
@@ -100,7 +101,7 @@ class DateTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            kBulanPendek[date.month - 1],
+            monthNamesShort[date.month - 1],
             style: TextStyle(
                 fontSize: 11, fontWeight: FontWeight.w800, color: c.onPop),
           ),
@@ -139,7 +140,7 @@ class PageHeader extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 4),
               child: IconButton(
-                tooltip: 'Kembali',
+                tooltip: tr('back'),
                 onPressed: () => appState.go(target),
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
