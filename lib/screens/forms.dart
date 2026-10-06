@@ -35,25 +35,23 @@ class _FormScaffold extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         title: Text(title),
       ),
-      body: WebSelectable(
-        child: SafeArea(
-          child: PageBody(
-            children: [
-              ...children,
-              if (error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  error!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
+      body: SafeArea(
+        child: PageBody(
+          children: [
+            ...children,
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                error!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-              const SizedBox(height: 16),
-              FilledButton(onPressed: onSubmit, child: Text(submitLabel)),
+              ),
             ],
-          ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: onSubmit, child: Text(submitLabel)),
+          ],
         ),
       ),
     );

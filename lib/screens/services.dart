@@ -495,8 +495,7 @@ class _SurveyFillState extends State<SurveyFill> {
         surfaceTintColor: Colors.transparent,
         title: Text(tr('nav_survey')),
       ),
-      body: WebSelectable(
-          child: SafeArea(
+      body: SafeArea(
         child: PageBody(
           children: [
             Text(
@@ -524,7 +523,7 @@ class _SurveyFillState extends State<SurveyFill> {
             FilledButton(onPressed: _submit, child: Text(tr('send_answers'))),
           ],
         ),
-      )),
+      ),
     );
   }
 }

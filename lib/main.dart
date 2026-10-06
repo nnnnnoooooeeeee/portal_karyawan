@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'l10n.dart';
@@ -12,9 +10,6 @@ import 'updater.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Di web, menu klik kanan bawaan browser tidak punya "Salin" untuk teks
-  // yang diblok di dalam aplikasi, jadi pakai menu milik Flutter.
-  if (kIsWeb) await BrowserContextMenu.disableContextMenu();
   await appState.load();
   runApp(const PortalApp());
   // Sekali tiap aplikasi dibuka: beri tahu kalau ada versi baru.

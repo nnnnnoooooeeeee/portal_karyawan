@@ -55,7 +55,7 @@ void main() {
     expect(appState.posts.first.title, 'Judul tes');
     expect(find.text('Judul tes'), findsOneWidget);
 
-    // Di luar web, hanya isi berita yang bisa diblok.
+    // Hanya isi berita yang bisa diblok, halaman lain tidak.
     expect(find.byType(SelectionArea), findsNothing);
     await tester.tap(find.text('Judul tes'));
     await tester.pumpAndSettle();

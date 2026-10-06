@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n.dart';
@@ -293,8 +292,7 @@ class _PostDetailState extends State<PostDetail> {
             surfaceTintColor: Colors.transparent,
             title: Text(catLabel(post.category)),
           ),
-          body: WebSelectable(
-              child: SafeArea(
+          body: SafeArea(
             child: PageBody(
               children: [
                 ClipRRect(
@@ -307,9 +305,9 @@ class _PostDetailState extends State<PostDetail> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Di web seluruh halaman sudah bisa diblok. Di Android hanya
-                // isi berita ini yang bisa diblok dan disalin.
-                kIsWeb ? article : SelectionArea(child: article),
+                // Hanya isi berita ini yang bisa diblok dan disalin, baik di
+                // Android maupun di web.
+                SelectionArea(child: article),
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -389,7 +387,7 @@ class _PostDetailState extends State<PostDetail> {
                 ),
               ],
             ),
-          )),
+          ),
         );
       },
     );
