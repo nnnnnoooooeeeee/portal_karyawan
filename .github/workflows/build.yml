@@ -34,6 +34,8 @@ jobs:
   #   pengguna tidak mendapat pemberitahuan update.
   android:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.ver.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
 
@@ -160,3 +162,44 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  # Web untuk XAMPP, diunggah sebagai portal-web-xampp.zip ke rilis yang sama
+  # dengan APK. Hasil build GitHub Pages tidak bisa dipakai di XAMPP karena
+  # base-href-nya nama repo, sedangkan di XAMPP alamatnya
+  # http://localhost/<FOLDER_XAMPP>/
+  # Cara pasang: ekstrak zip ke C:\xampp\htdocs, hasilnya htdocs\<FOLDER_XAMPP>.
+  web-xampp:
+    needs: android
+    runs-on: ubuntu-latest
+    env:
+      # Harus sama dengan nama folder di htdocs.
+      FOLDER_XAMPP: portal
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Siapkan folder platform
+        run: |
+          if [ ! -d android ] || [ ! -d web ]; then
+            flutter create --platforms=android,web --project-name portal_karyawan --org com.example .
+          fi
+
+      - run: flutter pub get
+
+      - env:
+          VERSI: ${{ inputs.versi }}
+        run: flutter build web --release --build-name="${VERSI#v}" --base-href "/$FOLDER_XAMPP/"
+
+      - name: Buat zip
+        run: |
+          mv build/web "$FOLDER_XAMPP"
+          zip -r portal-web-xampp.zip "$FOLDER_XAMPP"
+
+      - name: Unggah ke GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ needs.android.outputs.tag }}" portal-web-xampp.zip --clobber
