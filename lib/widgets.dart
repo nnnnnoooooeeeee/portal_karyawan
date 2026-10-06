@@ -193,15 +193,18 @@ class PageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    // Daftarnya selebar layar dan isinya dipersempit lewat padding, supaya
+    // scroll wheel tetap jalan saat kursor ada di ruang kosong kiri-kanan.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final side = box.maxWidth > maxWidth
+            ? (box.maxWidth - maxWidth) / 2 + 16
+            : 16.0;
+        return ListView(
+          padding: EdgeInsets.fromLTRB(side, 8, side, 24),
           children: children,
-        ),
-      ),
+        );
+      },
     );
   }
 }
