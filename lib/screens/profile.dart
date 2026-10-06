@@ -80,122 +80,150 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    return PageBody(
-      maxWidth: 600,
-      children: [
-        PageHeader(tr('nav_profile')),
-        AppCard(
-          color: c.hero,
-          child: Row(
-            children: [
-              Avatar(user.initials, size: 64),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
+    final identity = <Widget>[
+      AppCard(
+        color: c.hero,
+        child: Row(
+          children: [
+            Avatar(user.initials, size: 64),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                     ),
-                    if (user.position.isNotEmpty)
-                      Text(user.position, style: TextStyle(color: c.heroSub)),
-                  ],
-                ),
+                  ),
+                  if (user.position.isNotEmpty)
+                    Text(user.position, style: TextStyle(color: c.heroSub)),
+                ],
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              info(Icons.badge_rounded, tr('nik'), user.nik),
-              info(Icons.fingerprint_rounded, tr('finger_no'), user.fingerNo),
-              info(Icons.apartment_rounded, tr('department'), user.department),
-              info(Icons.work_rounded, tr('position'), user.position),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        section(tr('appearance'), [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ChoiceChip(
-                label: Text(tr('theme_system')),
-                selected: appState.themeMode == ThemeMode.system,
-                onSelected: (_) => appState.setTheme(ThemeMode.system),
-              ),
-              ChoiceChip(
-                label: Text(tr('theme_light')),
-                selected: appState.themeMode == ThemeMode.light,
-                onSelected: (_) => appState.setTheme(ThemeMode.light),
-              ),
-              ChoiceChip(
-                label: Text(tr('theme_dark')),
-                selected: appState.themeMode == ThemeMode.dark,
-                onSelected: (_) => appState.setTheme(ThemeMode.dark),
-              ),
-            ],
-          ),
-        ]),
-        const SizedBox(height: 16),
-        section(tr('language'), [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final l in kLanguages)
-                ChoiceChip(
-                  label: Text(l.name),
-                  selected: currentLanguage.code == l.code,
-                  onSelected: (_) => appState.setLanguage(l.code),
-                ),
-            ],
-          ),
-        ]),
-        const SizedBox(height: 16),
-        section(tr('notifications'), [
-          Text(tr('notif_test_desc'), style: TextStyle(color: c.muted)),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => _testNotification(context),
-            icon: const Icon(Icons.notifications_active_rounded),
-            label: Text(tr('notif_test_button')),
-          ),
-        ]),
-        const SizedBox(height: 16),
-        section(tr('about_app'), [
-          FutureBuilder<String>(
-            future: appVersion(),
-            builder: (context, snap) => Text(
-              tr('app_version', {'v': snap.data ?? '…'}),
-              style: TextStyle(color: c.muted),
-            ),
-          ),
-          if (updateSupported) ...[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => checkForUpdate(manual: true),
-              icon: const Icon(Icons.system_update_rounded),
-              label: Text(tr('check_update')),
             ),
           ],
-        ]),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: () => _confirmLogout(context),
-          icon: const Icon(Icons.logout_rounded),
-          label: Text(tr('logout')),
         ),
-      ],
+      ),
+      AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            info(Icons.badge_rounded, tr('nik'), user.nik),
+            info(Icons.fingerprint_rounded, tr('finger_no'), user.fingerNo),
+            info(Icons.apartment_rounded, tr('department'), user.department),
+            info(Icons.work_rounded, tr('position'), user.position),
+          ],
+        ),
+      ),
+    ];
+
+    final settings = <Widget>[
+      section(tr('appearance'), [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              label: Text(tr('theme_system')),
+              selected: appState.themeMode == ThemeMode.system,
+              onSelected: (_) => appState.setTheme(ThemeMode.system),
+            ),
+            ChoiceChip(
+              label: Text(tr('theme_light')),
+              selected: appState.themeMode == ThemeMode.light,
+              onSelected: (_) => appState.setTheme(ThemeMode.light),
+            ),
+            ChoiceChip(
+              label: Text(tr('theme_dark')),
+              selected: appState.themeMode == ThemeMode.dark,
+              onSelected: (_) => appState.setTheme(ThemeMode.dark),
+            ),
+          ],
+        ),
+      ]),
+      section(tr('language'), [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final l in kLanguages)
+              ChoiceChip(
+                label: Text(l.name),
+                selected: currentLanguage.code == l.code,
+                onSelected: (_) => appState.setLanguage(l.code),
+              ),
+          ],
+        ),
+      ]),
+      section(tr('notifications'), [
+        Text(tr('notif_test_desc'), style: TextStyle(color: c.muted)),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => _testNotification(context),
+          icon: const Icon(Icons.notifications_active_rounded),
+          label: Text(tr('notif_test_button')),
+        ),
+      ]),
+      section(tr('about_app'), [
+        FutureBuilder<String>(
+          future: appVersion(),
+          builder: (context, snap) => Text(
+            tr('app_version', {'v': snap.data ?? '…'}),
+            style: TextStyle(color: c.muted),
+          ),
+        ),
+        if (updateSupported) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => checkForUpdate(manual: true),
+            icon: const Icon(Icons.system_update_rounded),
+            label: Text(tr('check_update')),
+          ),
+        ],
+      ]),
+    ];
+
+    final logout = OutlinedButton.icon(
+      onPressed: () => _confirmLogout(context),
+      icon: const Icon(Icons.logout_rounded),
+      label: Text(tr('logout')),
+    );
+
+    return LayoutBuilder(
+      builder: (context, box) {
+        final wide = box.maxWidth >= 860;
+        return PageBody(
+          maxWidth: wide ? 1040 : 600,
+          children: [
+            PageHeader(tr('nav_profile')),
+            if (wide)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 380,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: spaced([...identity, logout], 16),
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: spaced(settings, 16),
+                    ),
+                  ),
+                ],
+              )
+            else
+              ...spaced([...identity, ...settings, logout], 16),
+          ],
+        );
+      },
     );
   }
 }

@@ -15,7 +15,7 @@ class Language {
 /// 2. Terjemahkan nilainya (kunci di sebelah kiri jangan diubah).
 /// 3. Daftarkan di bawah ini.
 const List<Language> kLanguages = [
-  Language('id', 'Bahasa Indonesia', kTextId),
+  Language('id', 'Indonesia', kTextId),
   Language('en', 'English', kTextEn),
 ];
 

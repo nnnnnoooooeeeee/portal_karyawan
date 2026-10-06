@@ -340,54 +340,86 @@ class SurveyPage extends StatelessWidget {
     final c = AppColors.of(context);
     final uid = appState.uid;
 
-    return PageBody(
-      children: [
-        PageHeader(
-          tr('nav_survey'),
-          subtitle: tr('survey_subtitle'),
-          backTo: 'services',
-          action: FilledButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const SurveyForm()),
+    // [fill] mendorong tombol ke dasar kartu saat kartu sebaris disamakan
+    // tingginya di layar lebar.
+    Widget card(Survey s, {bool fill = false}) {
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(s.title,
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text(s.description, style: TextStyle(color: c.muted)),
+            const SizedBox(height: 4),
+            Text(
+              tr('survey_meta', {'n': s.questions.length, 'm': s.minutes}),
+              style: TextStyle(color: c.muted, fontSize: 14),
             ),
-            icon: const Icon(Icons.add_rounded),
-            label: Text(tr('add')),
-          ),
+            const SizedBox(height: 12),
+            if (fill) const Spacer(),
+            if (s.answeredBy.contains(uid))
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Tag(tr('survey_done')),
+              )
+            else
+              FilledButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => SurveyFill(s)),
+                ),
+                child: Text(tr('fill_survey')),
+              ),
+          ],
         ),
-        ...spaced([
-          for (final s in appState.surveys)
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(s.title,
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Text(s.description, style: TextStyle(color: c.muted)),
-                  const SizedBox(height: 4),
-                  Text(
-                    tr('survey_meta', {'n': s.questions.length, 'm': s.minutes}),
-                    style: TextStyle(color: c.muted, fontSize: 14),
-                  ),
-                  const SizedBox(height: 12),
-                  if (s.answeredBy.contains(uid))
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Tag(tr('survey_done')),
-                    )
-                  else
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (_) => SurveyFill(s)),
-                      ),
-                      child: Text(tr('fill_survey')),
-                    ),
-                ],
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, box) {
+        final cols = box.maxWidth >= 1200 ? 3 : (box.maxWidth >= 860 ? 2 : 1);
+        final surveys = appState.surveys;
+
+        return PageBody(
+          maxWidth: cols == 3 ? 1280 : (cols == 2 ? 1040 : 760),
+          children: [
+            PageHeader(
+              tr('nav_survey'),
+              subtitle: tr('survey_subtitle'),
+              backTo: 'services',
+              action: FilledButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SurveyForm()),
+                ),
+                icon: const Icon(Icons.add_rounded),
+                label: Text(tr('add')),
               ),
             ),
-        ], 12),
-      ],
+            if (cols == 1)
+              ...spaced([for (final s in surveys) card(s)], 12)
+            else
+              ...spaced([
+                for (var i = 0; i < surveys.length; i += cols)
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var j = i; j < i + cols; j++) ...[
+                          if (j > i) const SizedBox(width: 16),
+                          Expanded(
+                            child: j < surveys.length
+                                ? card(surveys[j], fill: true)
+                                : const SizedBox(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+              ], 16),
+          ],
+        );
+      },
     );
   }
 }

@@ -60,10 +60,10 @@ class AppState extends ChangeNotifier {
     if (!users.any((u) => u.fingerNo == kDemoFingerNo)) {
       users.add(AppUser(
         name: 'Karyawan Demo',
-        nik: 'EMP-0001',
+        nik: '12341001',
         fingerNo: kDemoFingerNo,
         password: kDemoPassword,
-        department: 'Umum',
+        department: 'IT',
         position: 'Staf',
       ));
     }
