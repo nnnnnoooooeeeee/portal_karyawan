@@ -112,7 +112,7 @@ jobs:
         run: mv build/app/outputs/flutter-apk/app-release.apk portal-karyawan.apk
 
       - name: Unggah ke GitHub Releases
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           target_commitish: ${{ github.sha }}
@@ -154,14 +154,14 @@ jobs:
           VERSI: ${{ inputs.versi }}
         run: flutter build web --release --build-name="${VERSI#v}" --base-href "/${{ github.event.repository.name }}/"
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: build/web
 
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # Web untuk XAMPP, diunggah sebagai portal-web-xampp.zip ke rilis yang sama
   # dengan APK. Hasil build GitHub Pages tidak bisa dipakai di XAMPP karena
