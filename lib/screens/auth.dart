@@ -87,10 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
-            // Align membuat area gulir selebar layar, supaya scroll wheel
-            // jalan juga di ruang kosong kiri-kanan form.
-            child: Align(
-                child: ConstrainedBox(
+            child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -246,7 +243,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ],
               ),
-            )),
+            ),
           ),
         ),
       )),
