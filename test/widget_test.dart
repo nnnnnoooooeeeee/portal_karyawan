@@ -74,6 +74,14 @@ void main() {
 
     await tester.tap(find.text('Tambah'));
     await tester.pumpAndSettle();
+    // Pemilih tanggal ikut bahasa aplikasi.
+    await tester.tap(find.byIcon(Icons.event_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Batal'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
+    await tester.tap(find.text('Batal'));
+    await tester.pumpAndSettle();
+
     await tester.enterText(find.byType(TextField).at(0), 'Event tes');
     await tester.enterText(find.byType(TextField).at(1), 'Aula');
     await tester.tap(find.text('Simpan'));
