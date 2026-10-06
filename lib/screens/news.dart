@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n.dart';
@@ -5,6 +6,7 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'forms.dart';
 
 void openPost(BuildContext context, Post post) {
   Navigator.of(context).push(
@@ -57,7 +59,17 @@ class _NewsPageState extends State<NewsPage> {
 
     return PageBody(
       children: [
-        PageHeader(tr('nav_news'), subtitle: tr('news_subtitle')),
+        PageHeader(
+          tr('nav_news'),
+          subtitle: tr('news_subtitle'),
+          action: FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PostForm()),
+            ),
+            icon: const Icon(Icons.add_rounded),
+            label: Text(tr('add')),
+          ),
+        ),
         TextField(
           controller: _search,
           onChanged: appState.setNewsQuery,
@@ -255,13 +267,34 @@ class _PostDetailState extends State<PostDetail> {
         if (user == null) return const SizedBox.shrink();
         final liked = post.likes.contains(user.fingerNo);
 
+        final article = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              post.title,
+              style: const TextStyle(
+                fontSize: 26,
+                height: 1.2,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('${post.author}  ·  ${fmtDate(post.time)}',
+                style: TextStyle(color: c.muted)),
+            const SizedBox(height: 16),
+            Text(post.body, style: const TextStyle(fontSize: 16, height: 1.6)),
+          ],
+        );
+
         return Scaffold(
           appBar: AppBar(
             backgroundColor: c.bg,
             surfaceTintColor: Colors.transparent,
             title: Text(catLabel(post.category)),
           ),
-          body: SafeArea(
+          body: WebSelectable(
+              child: SafeArea(
             child: PageBody(
               children: [
                 ClipRRect(
@@ -274,21 +307,9 @@ class _PostDetailState extends State<PostDetail> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  post.title,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    height: 1.2,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text('${post.author}  ·  ${fmtDate(post.time)}',
-                    style: TextStyle(color: c.muted)),
-                const SizedBox(height: 16),
-                Text(post.body,
-                    style: const TextStyle(fontSize: 16, height: 1.6)),
+                // Di web seluruh halaman sudah bisa diblok. Di Android hanya
+                // isi berita ini yang bisa diblok dan disalin.
+                kIsWeb ? article : SelectionArea(child: article),
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -368,7 +389,7 @@ class _PostDetailState extends State<PostDetail> {
                 ),
               ],
             ),
-          ),
+          )),
         );
       },
     );

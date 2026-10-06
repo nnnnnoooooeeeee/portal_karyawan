@@ -79,13 +79,15 @@ class Shell extends StatelessWidget {
 
             if (width < 700) {
               return Scaffold(
-                body: SafeArea(
-                  bottom: false,
-                  child: Column(
-                    children: [
-                      TopBar(compact: true),
-                      Expanded(child: content),
-                    ],
+                body: WebSelectable(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Column(
+                      children: [
+                        TopBar(compact: true),
+                        Expanded(child: content),
+                      ],
+                    ),
                   ),
                 ),
                 bottomNavigationBar: BottomNav(),
@@ -93,19 +95,21 @@ class Shell extends StatelessWidget {
             }
 
             return Scaffold(
-              body: SafeArea(
-                child: Row(
-                  children: [
-                    SideNav(extended: width >= 1100),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          TopBar(compact: width < 1100),
-                          Expanded(child: content),
-                        ],
+              body: WebSelectable(
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      SideNav(extended: width >= 1100),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            TopBar(compact: width < 1100),
+                            Expanded(child: content),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -152,25 +156,28 @@ class TopBar extends StatelessWidget {
       showDragHandle: true,
       builder: (context) {
         final items = appState.notifications;
-        return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            children: [
-              Text(
-                tr('notifications'),
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              if (items.isEmpty) Text(tr('no_notifications')),
-              for (final n in items)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.notifications_rounded, color: c.primary),
-                  title: Text(n.text),
+        return WebSelectable(
+          child: SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              children: [
+                Text(
+                  tr('notifications'),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w800),
                 ),
-            ],
+                const SizedBox(height: 8),
+                if (items.isEmpty) Text(tr('no_notifications')),
+                for (final n in items)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading:
+                        Icon(Icons.notifications_rounded, color: c.primary),
+                    title: Text(n.text),
+                  ),
+              ],
+            ),
           ),
         );
       },

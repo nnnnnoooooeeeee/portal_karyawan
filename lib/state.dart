@@ -208,6 +208,28 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addPost({
+    required String title,
+    required String body,
+    required String category,
+    bool pinned = false,
+  }) {
+    // Ditaruh paling depan supaya langsung muncul di beranda.
+    posts.insert(
+      0,
+      Post(
+        id: 'p${posts.length + 1}',
+        title: title.trim(),
+        body: body.trim(),
+        category: category,
+        author: user!.name,
+        time: DateTime.now(),
+        pinned: pinned,
+      ),
+    );
+    notifyListeners();
+  }
+
   // ---------- Event ----------
 
   List<EventItem> get upcomingEvents {
@@ -229,10 +251,47 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  EventItem addEvent({
+    required String title,
+    required String description,
+    required String location,
+    required DateTime start,
+  }) {
+    final ev = EventItem(
+      id: 'e${events.length + 1}',
+      title: title.trim(),
+      description: description.trim(),
+      location: location.trim(),
+      start: start,
+    );
+    events.add(ev);
+    notifyListeners();
+    return ev;
+  }
+
   // ---------- Survey ----------
 
   List<Survey> get pendingSurveys =>
       surveys.where((s) => !s.answeredBy.contains(uid)).toList();
+
+  void addSurvey({
+    required String title,
+    required String description,
+    required int minutes,
+    required List<SurveyQuestion> questions,
+  }) {
+    surveys.insert(
+      0,
+      Survey(
+        id: 's${surveys.length + 1}',
+        title: title.trim(),
+        description: description.trim(),
+        minutes: minutes,
+        questions: questions,
+      ),
+    );
+    notifyListeners();
+  }
 
   void submitSurvey(Survey s) {
     s.answeredBy.add(uid);

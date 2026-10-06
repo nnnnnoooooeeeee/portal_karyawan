@@ -5,6 +5,7 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'forms.dart';
 
 /// Baris ringkas event: kotak tanggal, judul, jam, dan lokasi.
 class EventRow extends StatelessWidget {
@@ -58,6 +59,20 @@ class _EventsPageState extends State<EventsPage> {
     setState(() {
       _month = DateTime(_month.year, _month.month + delta, 1);
       _selected = null;
+    });
+  }
+
+  /// Buka form event baru, lalu pindahkan kalender ke tanggal event itu.
+  Future<void> _add() async {
+    final created = await Navigator.of(context).push(
+      MaterialPageRoute<EventItem>(
+          builder: (_) => EventForm(initialDate: _selected)),
+    );
+    if (created == null || !mounted) return;
+    final d = created.start;
+    setState(() {
+      _month = DateTime(d.year, d.month, 1);
+      _selected = DateTime(d.year, d.month, d.day);
     });
   }
 
@@ -253,8 +268,15 @@ class _EventsPageState extends State<EventsPage> {
         return PageBody(
           maxWidth: wide ? 1040 : 560,
           children: [
-            PageHeader(tr('nav_events'),
-                subtitle: tr('events_subtitle')),
+            PageHeader(
+              tr('nav_events'),
+              subtitle: tr('events_subtitle'),
+              action: FilledButton.icon(
+                onPressed: _add,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(tr('add')),
+              ),
+            ),
             if (wide)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

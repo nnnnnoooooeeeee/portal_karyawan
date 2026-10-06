@@ -1,9 +1,22 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
 import 'models.dart';
 import 'state.dart';
 import 'theme.dart';
+
+/// Di web, semua teks di dalam [child] bisa diblok dan disalin. Di Android
+/// tidak; di sana hanya isi berita yang bisa diblok (lihat PostDetail).
+/// Dipasang per halaman, di bawah Navigator, karena butuh Overlay.
+class WebSelectable extends StatelessWidget {
+  final Widget child;
+  const WebSelectable({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) =>
+      kIsWeb ? SelectionArea(child: child) : child;
+}
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -121,11 +134,14 @@ class DateTile extends StatelessWidget {
 }
 
 /// Judul halaman. Di layar HP, [backTo] menampilkan tombol kembali.
+/// [action] tampil di sisi kanan judul.
 class PageHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String? backTo;
-  const PageHeader(this.title, {super.key, this.subtitle, this.backTo});
+  final Widget? action;
+  const PageHeader(this.title,
+      {super.key, this.subtitle, this.backTo, this.action});
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +178,7 @@ class PageHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (action != null) ...[const SizedBox(width: 12), action!],
         ],
       ),
     );

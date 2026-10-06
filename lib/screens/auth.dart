@@ -82,7 +82,8 @@ class _AuthScreenState extends State<AuthScreen> {
     String optional(String key) => tr('optional', {'label': tr(key)});
 
     return Scaffold(
-      body: SafeArea(
+      body: WebSelectable(
+          child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -245,7 +246,7 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

@@ -5,6 +5,7 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'forms.dart';
 
 // ---------------------------------------------------------------- Layanan
 
@@ -341,8 +342,18 @@ class SurveyPage extends StatelessWidget {
 
     return PageBody(
       children: [
-        PageHeader(tr('nav_survey'),
-            subtitle: tr('survey_subtitle'), backTo: 'services'),
+        PageHeader(
+          tr('nav_survey'),
+          subtitle: tr('survey_subtitle'),
+          backTo: 'services',
+          action: FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const SurveyForm()),
+            ),
+            icon: const Icon(Icons.add_rounded),
+            label: Text(tr('add')),
+          ),
+        ),
         ...spaced([
           for (final s in appState.surveys)
             AppCard(
@@ -484,7 +495,8 @@ class _SurveyFillState extends State<SurveyFill> {
         surfaceTintColor: Colors.transparent,
         title: Text(tr('nav_survey')),
       ),
-      body: SafeArea(
+      body: WebSelectable(
+          child: SafeArea(
         child: PageBody(
           children: [
             Text(
@@ -512,7 +524,7 @@ class _SurveyFillState extends State<SurveyFill> {
             FilledButton(onPressed: _submit, child: Text(tr('send_answers'))),
           ],
         ),
-      ),
+      )),
     );
   }
 }
