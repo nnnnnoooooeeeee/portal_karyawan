@@ -266,7 +266,6 @@ class _EventsPageState extends State<EventsPage> {
       builder: (context, box) {
         final wide = box.maxWidth >= 860;
         return PageBody(
-          maxWidth: wide ? 1040 : 560,
           children: [
             PageHeader(
               tr('nav_events'),
@@ -287,7 +286,12 @@ class _EventsPageState extends State<EventsPage> {
                 ],
               )
             else ...[
-              _calendar(context),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: _calendar(context),
+                ),
+              ),
               const SizedBox(height: 20),
               listColumn,
             ],

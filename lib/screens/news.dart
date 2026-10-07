@@ -294,6 +294,7 @@ class _PostDetailState extends State<PostDetail> {
           ),
           body: SafeArea(
             child: PageBody(
+              maxWidth: 760,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(24),

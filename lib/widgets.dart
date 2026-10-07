@@ -172,20 +172,28 @@ class PageHeader extends StatelessWidget {
   }
 }
 
-/// Isi halaman yang bisa digulir, dengan lebar maksimum supaya nyaman dibaca.
+/// Jarak kiri-kanan isi halaman. Sama dengan TopBar, supaya semua halaman
+/// sejajar.
+double pageGutter(BuildContext context) =>
+    MediaQuery.of(context).size.width < 1100 ? 16 : 24;
+
+/// Isi halaman yang bisa digulir. Halaman utama memenuhi lebar yang ada,
+/// jadi jarak kiri-kanannya sama semua. [maxWidth] hanya untuk layar penuh
+/// seperti form, supaya tetap nyaman dibaca.
 class PageBody extends StatelessWidget {
   final List<Widget> children;
-  final double maxWidth;
-  const PageBody({super.key, required this.children, this.maxWidth = 760});
+  final double? maxWidth;
+  const PageBody({super.key, required this.children, this.maxWidth});
 
   @override
   Widget build(BuildContext context) {
+    final gutter = pageGutter(context);
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 24),
           children: children,
         ),
       ),

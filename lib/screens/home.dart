@@ -155,8 +155,9 @@ class HomePage extends StatelessWidget {
         final side = <Widget>[slipCard, eventsCard, surveyCard];
 
         if (wide) {
+          final gutter = pageGutter(context);
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 24),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

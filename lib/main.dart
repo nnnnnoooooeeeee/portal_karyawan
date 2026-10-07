@@ -16,6 +16,39 @@ Future<void> main() async {
   WidgetsBinding.instance.addPostFrameCallback((_) => checkForUpdate());
 }
 
+/// Skala tampilan di layar lebar (tablet dan PC). Di bawah 1 = lebih kecil.
+const double kDesktopScale = 0.9;
+
+/// Mengecilkan seluruh tampilan di layar lebar, sama seperti zoom out di
+/// browser. Aplikasi digambar di kanvas yang lebih besar lalu diperkecil,
+/// jadi dialog dan menu ikut mengecil. Di HP tidak diubah.
+class _DesktopScale extends StatelessWidget {
+  final Widget child;
+  const _DesktopScale({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    if (mq.size.width < 700) return child;
+    return FittedBox(
+      child: SizedBox(
+        width: mq.size.width / kDesktopScale,
+        height: mq.size.height / kDesktopScale,
+        child: MediaQuery(
+          data: mq.copyWith(
+            size: mq.size / kDesktopScale,
+            devicePixelRatio: mq.devicePixelRatio * kDesktopScale,
+            padding: mq.padding / kDesktopScale,
+            viewPadding: mq.viewPadding / kDesktopScale,
+            viewInsets: mq.viewInsets / kDesktopScale,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
 class PortalApp extends StatelessWidget {
   const PortalApp({super.key});
 
@@ -36,6 +69,7 @@ class PortalApp extends StatelessWidget {
           theme: buildTheme(Brightness.light),
           darkTheme: buildTheme(Brightness.dark),
           themeMode: appState.themeMode,
+          builder: (context, child) => _DesktopScale(child: child!),
           home: appState.user == null ? const AuthScreen() : const Shell(),
         );
       },

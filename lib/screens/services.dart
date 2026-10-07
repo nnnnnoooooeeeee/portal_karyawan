@@ -382,7 +382,6 @@ class SurveyPage extends StatelessWidget {
         final surveys = appState.surveys;
 
         return PageBody(
-          maxWidth: cols == 3 ? 1280 : (cols == 2 ? 1040 : 760),
           children: [
             PageHeader(
               tr('nav_survey'),
@@ -529,6 +528,7 @@ class _SurveyFillState extends State<SurveyFill> {
       ),
       body: SafeArea(
         child: PageBody(
+          maxWidth: 760,
           children: [
             Text(
               widget.survey.title,

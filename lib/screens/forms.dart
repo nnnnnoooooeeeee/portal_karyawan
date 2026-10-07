@@ -37,6 +37,7 @@ class _FormScaffold extends StatelessWidget {
       ),
       body: SafeArea(
         child: PageBody(
+          maxWidth: 760,
           children: [
             ...children,
             if (error != null) ...[

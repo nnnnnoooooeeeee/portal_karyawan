@@ -196,7 +196,6 @@ class ProfilePage extends StatelessWidget {
       builder: (context, box) {
         final wide = box.maxWidth >= 860;
         return PageBody(
-          maxWidth: wide ? 1040 : 600,
           children: [
             PageHeader(tr('nav_profile')),
             if (wide)
